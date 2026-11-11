@@ -1,0 +1,290 @@
+{
+  "puffer-heat-reactive": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "bomber-camo-reflective": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "bomber-rainbow-reflective": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "coord-camo-reflective": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "tee-acid-300": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "tee-acid-220": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "tee-boxy": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "tee-distressed": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "tank-acid-print": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "tee-screen-print": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "tee-puff-embroidery": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "tee-reflective-dtf": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "tee-monster-print": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "hoodie-heavyweight": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "hoodie-lined": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "hoodie-applique": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "hoodie-acid-print": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "hoodie-allover-print": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "hoodie-split-pocket": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "hoodie-colour-block": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "sweat-acid": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "sweat-mineral": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "denim-custom": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "jersey-basketball": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "jacket-canvas-embroidery": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "factory-knitting": {
+    "width": 640,
+    "height": 480,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "factory-embroidery": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "factory-screen-line": {
+    "width": 640,
+    "height": 853,
+    "widths": [
+      360,
+      640
+    ]
+  },
+  "factory-auto-press": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "factory-hand-print": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "factory-colours": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "factory-bulk-boxes": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "factory-own-label": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "jacket-hybrid-quilted": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "joggers-washed": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  },
+  "hoodie-camo-print": {
+    "width": 720,
+    "height": 960,
+    "widths": [
+      360,
+      720
+    ]
+  }
+}

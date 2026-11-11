@@ -1,0 +1,258 @@
+{
+  "$comment": "Image manifest. PLACEHOLDERS until the real product shoot: every image is an Instagram reel cover from @antlerteecreativestudios. To swap one, change `src` (or drop a new file in and point `src` at it), keep the `id`, then run `npm run images`. `src` is relative to `sourceRoot` (relative to this project folder). `aspect` is the crop (W:H). `focusY` picks the vertical crop position (0 = top, 0.5 = centre, 1 = bottom), used to cut baked-in caption text. Output: public/img/<id>-<width>.avif|webp plus src/content/images.generated.json.",
+  "sourceRoot": "../..",
+  "images": [
+    {
+      "id": "puffer-heat-reactive",
+      "src": "RESEARCH/instagram-thumbs/032_DRNF9IyDKxM.jpg",
+      "aspect": "3:4",
+      "focusY": 0.62,
+      "alt": "Heat-reactive puffer jacket fading from red to black, laid in a white tub"
+    },
+    {
+      "id": "bomber-camo-reflective",
+      "src": "RESEARCH/instagram-thumbs/024_DTiVdCRjNIK.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Camo reflective bomber jacket laid flat, white camo pattern on black"
+    },
+    {
+      "id": "bomber-rainbow-reflective",
+      "src": "RESEARCH/drive-photos-web/bomber-rainbow-worn.jpg",
+      "aspect": "3:4",
+      "focusY": 0.35,
+      "alt": "Rainbow reflective jacket worn at night, glowing under camera flash"
+    },
+    {
+      "id": "coord-camo-reflective",
+      "src": "RESEARCH/drive-photos-web/bomber-camo-worn.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "Camo reflective jacket worn on a lit city street at night"
+    },
+    {
+      "id": "tee-acid-300",
+      "src": "RESEARCH/instagram-thumbs/017_DYUshAaMeAy.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Blue acid-wash heavyweight tee laid flat on a stone floor"
+    },
+    {
+      "id": "tee-acid-220",
+      "src": "RESEARCH/instagram-thumbs/021_DXW5K_BjCzO.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Teal acid-washed oversized tee laid flat on concrete"
+    },
+    {
+      "id": "tee-boxy",
+      "src": "RESEARCH/instagram-thumbs/010_DavJO-es4HV.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "Black oversized boxy-fit tee with a silver print"
+    },
+    {
+      "id": "tee-distressed",
+      "src": "RESEARCH/instagram-thumbs/036_DNa1z8EsFdf.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Grey heavyweight distressed oversized tee on a red rug"
+    },
+    {
+      "id": "tank-acid-print",
+      "src": "RESEARCH/instagram-thumbs/034_DPoum2XDLdO.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "Acid-washed screen-printed tank top on a red rug"
+    },
+    {
+      "id": "tee-screen-print",
+      "src": "RESEARCH/instagram-thumbs/009_DaxqLVhstx2.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "Black oversized tee with a screen-printed statue graphic"
+    },
+    {
+      "id": "tee-puff-embroidery",
+      "src": "RESEARCH/instagram-thumbs/043_DJ4OFNOMWBM.jpg",
+      "aspect": "3:4",
+      "focusY": 0.4,
+      "alt": "White oversized tee with a small blue puff embroidered star"
+    },
+    {
+      "id": "tee-reflective-dtf",
+      "src": "RESEARCH/instagram-thumbs/082_C97tkZvCAZJ.jpg",
+      "aspect": "3:4",
+      "focusY": 0.6,
+      "alt": "Black tee with a large rainbow reflective DTF print"
+    },
+    {
+      "id": "tee-monster-print",
+      "src": "RESEARCH/instagram-thumbs/022_DXRvif1EdVG.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Grey acid-wash tee with a black monster graphic, laid on concrete"
+    },
+    {
+      "id": "hoodie-heavyweight",
+      "src": "RESEARCH/instagram-thumbs/042_DJ9Zgi0Cton.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Black heavyweight hoodie with a pink screen print, laid on a red rug"
+    },
+    {
+      "id": "hoodie-lined",
+      "src": "RESEARCH/instagram-thumbs/065_DDXT88bine2.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "Charcoal oversized hoodie being steamed before packing"
+    },
+    {
+      "id": "hoodie-applique",
+      "src": "RESEARCH/instagram-thumbs/025_DTZZ-MojJ94.jpg",
+      "aspect": "3:4",
+      "focusY": 0.3,
+      "alt": "Cream hoodie with coral appliqué embroidery"
+    },
+    {
+      "id": "hoodie-acid-print",
+      "src": "RESEARCH/instagram-thumbs/066_DDMv3D-CZhs.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Acid-washed hoodie with a white screen-printed back graphic"
+    },
+    {
+      "id": "hoodie-allover-print",
+      "src": "RESEARCH/instagram-thumbs/067_DCrR4kXC2je.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "White hoodie with an all-over black screen print"
+    },
+    {
+      "id": "hoodie-split-pocket",
+      "src": "RESEARCH/instagram-thumbs/068_DCZaoeZCLpx.jpg",
+      "aspect": "3:4",
+      "focusY": 0.4,
+      "alt": "Navy oversized split-pocket hoodie worn, seen from behind"
+    },
+    {
+      "id": "hoodie-colour-block",
+      "src": "RESEARCH/instagram-thumbs/062_DDzXI3ri1bo.jpg",
+      "aspect": "3:4",
+      "focusY": 0.55,
+      "alt": "Colour-block hoodie in black and red with an embroidered chest graphic"
+    },
+    {
+      "id": "sweat-acid",
+      "src": "RESEARCH/instagram-thumbs/026_DS-SRI7jFaI.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Acid-washed sweatshirts in blue and green laid out on a stone floor"
+    },
+    {
+      "id": "sweat-mineral",
+      "src": "RESEARCH/drive-photos-web/crew-mineral-worn.jpg",
+      "aspect": "3:4",
+      "focusY": 0.4,
+      "alt": "Mineral-washed blue crew sweatshirt, worn"
+    },
+    {
+      "id": "denim-custom",
+      "src": "RESEARCH/instagram-thumbs/018_DX9vROGsqXW.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Light-wash straight jeans laid on a red Persian rug"
+    },
+    {
+      "id": "jersey-basketball",
+      "src": "RESEARCH/instagram-thumbs/039_DMSxjmCC-_A.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Oversized basketball jersey with a maroon number going through an overlock machine"
+    },
+    {
+      "id": "jacket-canvas-embroidery",
+      "src": "RESEARCH/instagram-thumbs/015_DaDhD2hsJsC.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Canvas jacket back with dense high-density koi embroidery"
+    },
+    {
+      "id": "factory-knitting",
+      "src": "RESEARCH/instagram-thumbs/035_DPEn2--DEOK.jpg",
+      "aspect": "4:3",
+      "focusY": 0.48,
+      "alt": "Circular knitting machine knitting fabric on the factory floor"
+    },
+    {
+      "id": "factory-embroidery",
+      "src": "RESEARCH/instagram-thumbs/046_DJq4kf-C09o.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "A long line of multi-head embroidery machines stitching black tees"
+    },
+    {
+      "id": "factory-screen-line",
+      "src": "RESEARCH/instagram-thumbs/053_DFiJyrBMeFP.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "Long screen-printing tables with printed panels drying"
+    },
+    {
+      "id": "factory-auto-press",
+      "src": "RESEARCH/instagram-thumbs/080_C-ajvR8i3PO.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Automatic screen-printing press pulling yellow ink"
+    },
+    {
+      "id": "factory-hand-print",
+      "src": "RESEARCH/instagram-thumbs/101_C51AoPuCSMz.jpg",
+      "aspect": "3:4",
+      "focusY": 0.6,
+      "alt": "Hand screen printing white ink through a frame onto a garment"
+    },
+    {
+      "id": "factory-colours",
+      "src": "RESEARCH/instagram-thumbs/052_DFxdmnSMoxV.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Oversized tees in navy, green, rust and black hanging on a rail"
+    },
+    {
+      "id": "factory-bulk-boxes",
+      "src": "RESEARCH/instagram-thumbs/070_DBlwuMMCdUG.jpg",
+      "aspect": "3:4",
+      "focusY": 0.55,
+      "alt": "Bulk order packed in poly bags and cartons, ready to ship"
+    },
+    {
+      "id": "factory-own-label",
+      "src": "RESEARCH/instagram-thumbs/008_Da0VuZkMJSU.jpg",
+      "aspect": "3:4",
+      "focusY": 0.55,
+      "alt": "Finished grey tee with a woven label, laid on concrete"
+    },
+    {
+      "id": "jacket-hybrid-quilted",
+      "src": "RESEARCH/drive-photos-web/jacket-hybrid-quilted.jpg",
+      "aspect": "3:4",
+      "focusY": 0.5,
+      "alt": "Navy hybrid jacket with a quilted body and fleece hood and sleeves, laid flat"
+    },
+    {
+      "id": "joggers-washed",
+      "src": "RESEARCH/drive-photos-web/joggers-washed.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "Grey washed fleece joggers with a drawstring waist, laid flat"
+    },
+    {
+      "id": "hoodie-camo-print",
+      "src": "RESEARCH/drive-photos-web/hoodie-camo-print.jpg",
+      "aspect": "3:4",
+      "focusY": 0.45,
+      "alt": "All-over camo print pullover hoodie on a hanger"
+    }
+  ]
+}
