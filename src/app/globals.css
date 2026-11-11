@@ -1265,24 +1265,24 @@ html.seen .loader {
 .wd-swing {
   position: relative;
   display: block;
-  transform-origin: 53% 0; /* the hook on the rail */
+  transform-origin: 50% 0; /* the hook on the rail */
   transition: transform 0.5s var(--ease-out);
 }
-/* Hook centre (svg y=9) sits on the rail centre; the shoulders overlap the top of the card. */
+/* A small hook: its curl (svg y=9) sits on the rail centre and the stem ends just inside the card's top edge. */
 .wd-hanger {
   position: relative;
   z-index: 2;
   display: block;
-  width: 72%;
-  height: auto;
-  margin: calc(8.5px - 5.4%) auto 0;
+  width: 22px;
+  height: 22px;
+  margin: 0.5px auto 0;
 }
 .wd-card {
   position: relative;
   z-index: 1;
   display: block;
   aspect-ratio: 3/4;
-  margin-top: -8.4%;
+  margin-top: -2px;
   border-radius: 6px;
   overflow: hidden;
   background: #3b2a1d;
@@ -2135,4 +2135,161 @@ select.input {
 
 main:focus {
   outline: none;
+}
+
+/* ---------- blog ---------- */
+.pin-host {
+  display: block;
+}
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(36px, 5vw, 72px) clamp(20px, 3vw, 48px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.blog-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.blog-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--ink);
+}
+.blog-media picture,
+.blog-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.blog-media img {
+  object-fit: cover;
+  transition: transform 0.7s var(--ease-out);
+}
+.blog-card:hover .blog-media img,
+.blog-card:focus-visible .blog-media img {
+  transform: scale(1.04);
+}
+.blog-tag {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 6px 10px;
+  border-radius: 99px;
+  background: var(--yellow);
+  color: var(--ink);
+}
+.blog-meta {
+  display: block;
+  margin-top: 18px;
+  color: var(--mute);
+}
+.blog-title {
+  margin-top: 10px;
+  font: 900 clamp(26px, 2.6vw, 40px) / 1 var(--font-display);
+  letter-spacing: var(--track);
+}
+.blog-sum {
+  max-width: 52ch;
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #4f4a44;
+}
+.blog-more {
+  display: inline-block;
+  margin-top: 16px;
+  font: 600 13px/1 var(--font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+.post-hero .post-title {
+  max-width: 18ch;
+  margin-top: 18px;
+  font-size: clamp(40px, 6.2vw, 104px);
+}
+.post-byline {
+  margin-top: 28px;
+}
+.post-hero .kicker a {
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-underline-offset: 4px;
+}
+.post-body-wrap {
+  padding: 0 var(--pad) 12vh;
+  background: var(--paper);
+}
+.post-cover {
+  max-width: 1100px;
+  margin: 0 auto;
+  transform: translateY(-6vh);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--ink);
+}
+.post-cover picture,
+.post-cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 64svh;
+  object-fit: cover;
+}
+.post-body {
+  max-width: 68ch;
+  margin: 0 auto;
+}
+.post-body > * + * {
+  margin-top: 1.1em;
+}
+.post-h2 {
+  margin-top: 2.2em;
+  font: 900 clamp(26px, 2.8vw, 40px) / 1.02 var(--font-display);
+  letter-spacing: var(--track);
+}
+.post-list {
+  padding-left: 1.2em;
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1.6;
+}
+.post-list li + li {
+  margin-top: 0.6em;
+}
+.post-list li::marker {
+  color: var(--ink);
+}
+.post-note {
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 600;
+}
+.post-more {
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 859.98px) {
+  .blog-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .post-cover {
+    transform: translateY(-4vh);
+    border-radius: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blog-media img {
+    transition: none;
+  }
 }

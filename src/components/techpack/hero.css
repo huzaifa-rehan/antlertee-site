@@ -1,0 +1,294 @@
+/* Process page hero: the headline and the build / send choice beside the pinned 3D hoodie (.tph-), plus the page's
+   section heads (.pg-). Loaded with TechPackSection on /process/ only. Uses the tokens from globals.css.
+
+   The hero is a tall "zone" with a sticky, one-screen "pin" inside it: while you scroll through the zone the hoodie
+   stays put and goes from a transparent ghost to the grey acid-washed garment (ProcessHoodie.tsx reads the zone's
+   scroll position). Plain CSS sticky, no script-built wrapper. */
+
+.tph {
+  background: var(--ink);
+  color: var(--paper);
+}
+.tph-zone {
+  position: relative;
+  height: 250vh;
+  height: 250svh;
+}
+.tph-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+}
+.tph-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(20px, 3vw, 56px);
+  height: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 104px var(--pad) 56px;
+}
+.tph-left {
+  min-width: 0;
+}
+
+/* Head */
+.tph .tph-kicker {
+  color: var(--mute-inv);
+}
+.tph-title {
+  margin-top: 16px;
+  font: 900 clamp(52px, 7vw, 124px) / 0.86 var(--font-display);
+  letter-spacing: var(--track);
+}
+.tph-lead {
+  max-width: 46ch;
+  margin-top: 22px;
+  font-size: clamp(16px, 1.3vw, 19px);
+  line-height: 1.55;
+  color: #c9c4bb;
+}
+.tph-how {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 6px;
+  font: 600 13px/1 var(--font-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+/* Build / send choice, on ink */
+.tph-tabs {
+  margin: 30px 0 0;
+}
+.tph .tp-tab {
+  padding: 18px 20px 16px;
+  background: transparent;
+  border-color: var(--line-inv);
+  color: var(--paper);
+}
+.tph .tp-tab:hover {
+  border-color: var(--paper);
+}
+.tph .tp-tab[aria-selected="true"] {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
+  box-shadow: none;
+}
+.tph .tp-tab-t {
+  font-size: clamp(19px, 1.6vw, 25px);
+}
+.tph .tp-tab-x {
+  color: var(--mute-inv);
+}
+.tph .tp-tab[aria-selected="true"] .tp-tab-x {
+  color: var(--mute);
+}
+.tph .tp-tab[aria-selected="true"] .tp-tab-go {
+  color: var(--ink);
+}
+
+/* ---------- the pinned hoodie ---------- */
+.tph-stage {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+}
+.tph-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(48% 56% at 50% 52%, rgba(255, 229, 0, 0.07), transparent 70%),
+    radial-gradient(66% 74% at 50% 58%, rgba(244, 242, 238, 0.06), transparent 75%);
+  pointer-events: none;
+}
+/* The 3D canvas, the 2D drawing and the poster share the stage with the home hero's classes (globals.css). */
+.tph-stage .hero-canvas {
+  position: absolute;
+  inset: 0;
+}
+.tph-stage .garment {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+}
+.tph-meter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--mute-inv);
+  pointer-events: none;
+}
+.tph-meter .now {
+  color: var(--paper);
+  white-space: nowrap;
+}
+.tph-meter i {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  background: rgba(244, 242, 238, 0.18);
+}
+.tph-meter i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--yellow);
+  transform: scaleX(var(--p, 0));
+  transform-origin: 0 50%;
+}
+
+/* ---------- panels: the builder reads best on paper, so the band below the hero is paper, edge to edge ---------- */
+.tph-panels {
+  background: var(--paper);
+  color: var(--ink);
+}
+.tph-panels-in {
+  max-width: 1500px;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 56px var(--pad) 12vh;
+}
+.tph .tp-builder {
+  container-type: inline-size;
+}
+
+/* ---------- section heads below the hero ---------- */
+.pg-how {
+  border-top: 1px solid var(--line-inv);
+}
+.pg-how-head {
+  margin-bottom: 9vh;
+}
+.pg-how-lead {
+  max-width: 46ch;
+  margin-top: 24px;
+  font-size: clamp(16px, 1.4vw, 20px);
+  line-height: 1.55;
+  color: #c9c4bb;
+}
+.pg-faq {
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- tablet ---------- */
+@media (max-width: 1099.98px) {
+  .tph .tp-tab-x {
+    display: none;
+  }
+  .tph .tp-tab {
+    padding: 14px 16px;
+  }
+}
+
+/* ---------- phone: headline and the two choices on top, the hoodie fills the rest of the screen ---------- */
+@media (max-width: 859.98px) {
+  .tph-in {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
+    row-gap: 6px;
+    padding-top: 118px;
+    padding-bottom: 28px;
+  }
+  .tph-title {
+    margin-top: 10px;
+    font-size: clamp(44px, 13vw, 64px);
+  }
+  .tph-lead,
+  .tph-how {
+    display: none;
+  }
+  .tph-tabs {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 16px 0 0;
+  }
+  .tph .tp-tab {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "n t";
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+  .tph .tp-tab-go {
+    display: none;
+  }
+  .tph .tp-tab-n {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+  }
+  .tph .tp-tab-t {
+    font-size: 15px;
+    line-height: 1.1;
+  }
+  .tph-stage {
+    /* The 3D garment sizes itself to this box: it must never collapse to 0 on small screens. */
+    min-height: 30svh;
+  }
+  .tph-meter .hint {
+    display: none;
+  }
+  .tph-panels-in {
+    padding-top: 28px;
+  }
+}
+
+/* Reduced motion: no pin, the finished garment, then the panels. */
+@media (prefers-reduced-motion: reduce) {
+  .tph-zone {
+    height: auto;
+  }
+  .tph-pin {
+    position: relative;
+    height: auto;
+    min-height: 0;
+  }
+  .tph-in {
+    height: auto;
+  }
+  .tph-stage {
+    height: 52svh;
+    min-height: 320px;
+  }
+}
+
+/* ---------- builder inside the narrower column ---------- */
+@container (max-width: 760px) {
+  .tp-art {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tp-art-sketch {
+    position: static;
+  }
+  .tp-flat {
+    max-height: 380px;
+  }
+}
+@container (max-width: 620px) {
+  .tp-progress ol {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .tp-progress button {
+    min-height: 48px;
+    padding: 10px 4px;
+  }
+}

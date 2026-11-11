@@ -6,7 +6,7 @@ import { RailScroller } from "./RailScroller";
 /** Shared-element spring for a garment travelling between its hanger and the product view. */
 export const GARMENT_SPRING = { type: "spring", bounce: 0, duration: 0.55 } as const;
 
-/** `sizes` for a garment photo on a hanger (keep in sync with --gw in globals.css). */
+/** `sizes` for a garment photo on a hook (keep in sync with --gw in globals.css). */
 export const HANGER_SIZES = "(max-width: 600px) 34vw, (max-width: 859.98px) 27vw, 176px";
 
 type BayStyle = CSSProperties & { "--n": number };
@@ -16,16 +16,15 @@ export function bayStyle(count: number): BayStyle {
   return { "--n": count };
 }
 
-// Silver wire hanger: the hook over the rail, a twisted neck, then the shoulder wire and bottom bar.
-const HANGER_WIRE = "M60 30 V9 A5.25 5.25 0 0 1 70.5 9 V12 M60 30 L7 43.5 Q2 45.5 6.5 47 H113.5 Q118 45.5 113 43.5 L60 30";
+// Silver hook: it curls over the rail and ends in a short stem, so it never covers the product photo.
+const HOOK = "M12 22 V12 M12 12 V9 A4.4 4.4 0 1 1 7.6 4.6";
 
-/** Chrome wire hanger. Decorative; the hook curls over the rail. */
+/** Chrome hook that hangs the garment from the rail. Decorative. */
 export function HangerSvg() {
   return (
-    <svg className="wd-hanger" viewBox="0 0 120 50" aria-hidden="true" focusable="false">
-      <path d={HANGER_WIRE} fill="none" stroke="#6f757b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <path d={HANGER_WIRE} fill="none" stroke="#eef1f3" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M57.6 25.5 L62.4 27.5 M57.6 28.5 L62.4 30.5" stroke="#6f757b" strokeWidth="1.4" strokeLinecap="round" />
+    <svg className="wd-hanger" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d={HOOK} fill="none" stroke="#6f757b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={HOOK} fill="none" stroke="#eef1f3" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -36,7 +35,7 @@ interface GarmentArtProps {
   card?: ReactNode;
 }
 
-/** A garment on its hanger with its label underneath. Wrap it in a button or link. */
+/** A garment on its hook with its label underneath. Wrap it in a button or link. */
 export function GarmentArt({ product, card }: GarmentArtProps) {
   return (
     <>

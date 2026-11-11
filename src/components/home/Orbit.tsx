@@ -162,99 +162,104 @@ export function Orbit() {
 
   const current = collections[active];
 
+  // GSAP wraps the pinned <section> in a "pin-spacer". React must own the node it later removes, so the section sits
+  // inside this wrapper: on navigation React removes the wrapper (and the spacer inside it) instead of throwing
+  // "removeChild: not a child of this node" and showing the error page.
   return (
-    <section
-      ref={sectionRef}
-      className="orbit"
-      id="collections"
-      data-nav="light"
-      aria-roledescription="carousel"
-      aria-labelledby="orbit-title"
-    >
-      <h2 id="orbit-title" className="sr-only">
-        Collections
-      </h2>
-      <div className="orbit-in">
-        <div className="stage" ref={stageRef}>
-          <svg aria-hidden="true">
-            <circle ref={bandRef} fill="none" strokeLinecap="round" opacity={0.28} />
-          </svg>
-          {collections.map((c, i) => (
-            <div
-              key={c.slug}
-              className="o-item"
-              ref={(el) => {
-                itemRefs.current[i] = el;
-              }}
-              aria-hidden={i !== active}
-            >
-              <Picture id={c.image} sizes="(max-width: 860px) 40vw, 19vw" alt={i === active ? undefined : ""} />
-            </div>
-          ))}
-        </div>
-        <div className="o-copy">
-          <p className="br" style={{ color: "var(--mute)" }}>
-            ( {pad(active + 1)} / {pad(N)} ) &nbsp; Collections
-          </p>
-          <div className="o-titles" aria-live="polite">
+    <div className="pin-host">
+      <section
+        ref={sectionRef}
+        className="orbit"
+        id="collections"
+        data-nav="light"
+        aria-roledescription="carousel"
+        aria-labelledby="orbit-title"
+      >
+        <h2 id="orbit-title" className="sr-only">
+          Collections
+        </h2>
+        <div className="orbit-in">
+          <div className="stage" ref={stageRef}>
+            <svg aria-hidden="true">
+              <circle ref={bandRef} fill="none" strokeLinecap="round" opacity={0.28} />
+            </svg>
             {collections.map((c, i) => (
               <div
                 key={c.slug}
-                className="o-title"
-                role="group"
-                aria-roledescription="slide"
-                aria-label={`${i + 1} of ${N}`}
-                aria-hidden={i !== active}
+                className="o-item"
                 ref={(el) => {
-                  titleRefs.current[i] = el;
+                  itemRefs.current[i] = el;
                 }}
+                aria-hidden={i !== active}
               >
-                <h3>
-                  <span className="t1">{c.t1}</span>
-                  <span className="t2">{c.t2}</span>
-                </h3>
+                <Picture id={c.image} sizes="(max-width: 860px) 40vw, 19vw" alt={i === active ? undefined : ""} />
               </div>
             ))}
           </div>
-          <div className="o-card">
-            {collections.map((c, i) => (
-              <dl
-                key={c.slug}
-                className="o-spec"
-                aria-hidden={i !== active}
-                ref={(el) => {
-                  specRefs.current[i] = el;
-                }}
-              >
-                {c.spec.map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-              </dl>
-            ))}
-          </div>
-          <div className="o-foot">
-            <div className="o-dots" role="group" aria-label="Choose a collection">
+          <div className="o-copy">
+            <p className="br" style={{ color: "var(--mute)" }}>
+              ( {pad(active + 1)} / {pad(N)} ) &nbsp; Collections
+            </p>
+            <div className="o-titles" aria-live="polite">
               {collections.map((c, i) => (
-                <button
+                <div
                   key={c.slug}
-                  type="button"
-                  aria-label={`${c.t1} ${c.t2}`}
-                  aria-current={i === active ? "true" : undefined}
-                  onClick={() => select(i)}
-                />
+                  className="o-title"
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label={`${i + 1} of ${N}`}
+                  aria-hidden={i !== active}
+                  ref={(el) => {
+                    titleRefs.current[i] = el;
+                  }}
+                >
+                  <h3>
+                    <span className="t1">{c.t1}</span>
+                    <span className="t2">{c.t2}</span>
+                  </h3>
+                </div>
               ))}
             </div>
-            {current && (
-              <Link className="pill" href={`/products/${current.slug}/`}>
-                View {current.t2.toLowerCase()} →
-              </Link>
-            )}
+            <div className="o-card">
+              {collections.map((c, i) => (
+                <dl
+                  key={c.slug}
+                  className="o-spec"
+                  aria-hidden={i !== active}
+                  ref={(el) => {
+                    specRefs.current[i] = el;
+                  }}
+                >
+                  {c.spec.map(([k, v]) => (
+                    <div key={k}>
+                      <dt>{k}</dt>
+                      <dd>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ))}
+            </div>
+            <div className="o-foot">
+              <div className="o-dots" role="group" aria-label="Choose a collection">
+                {collections.map((c, i) => (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    aria-label={`${c.t1} ${c.t2}`}
+                    aria-current={i === active ? "true" : undefined}
+                    onClick={() => select(i)}
+                  />
+                ))}
+              </div>
+              {current && (
+                <Link className="pill" href={`/products/${current.slug}/`}>
+                  View {current.t2.toLowerCase()} →
+                </Link>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

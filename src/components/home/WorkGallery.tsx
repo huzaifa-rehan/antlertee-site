@@ -63,47 +63,52 @@ export function WorkGallery() {
     window.scrollTo({ top: st.start + (st.end - st.start) * wanted, behavior: "instant" });
   };
 
+  // GSAP wraps the pinned <section> in a "pin-spacer". React must own the node it later removes, so the section sits
+  // inside this wrapper: on navigation React removes the wrapper (and the spacer inside it) instead of throwing
+  // "removeChild: not a child of this node" and showing the error page.
   return (
-    <section
-      ref={sectionRef}
-      className="work"
-      data-nav="dark"
-      data-mode={pinned ? "pin" : "scroll"}
-      aria-labelledby="work-title"
-      id="work"
-    >
-      <div className="work-in">
-        <div className="work-head">
-          <h2 id="work-title" className="h-section">
-            Built here<span className="dot">.</span>
-          </h2>
-          <p>Real pieces off our floor. Every one can carry your label.</p>
+    <div className="pin-host">
+      <section
+        ref={sectionRef}
+        className="work"
+        data-nav="dark"
+        data-mode={pinned ? "pin" : "scroll"}
+        aria-labelledby="work-title"
+        id="work"
+      >
+        <div className="work-in">
+          <div className="work-head">
+            <h2 id="work-title" className="h-section">
+              Built here<span className="dot">.</span>
+            </h2>
+            <p>Real pieces off our floor. Every one can carry your label.</p>
+          </div>
+          <div
+            className="track-wrap"
+            role="region"
+            aria-label="Products made at Antlertee, scroll sideways"
+            tabIndex={pinned ? undefined : 0}
+          >
+            <ul className="track" ref={trackRef} onFocus={onFocus}>
+              {gallery.map((item) => (
+                <li key={item.slug}>
+                  <Link className="card" href={`/products/${item.slug}/`}>
+                    <Picture id={item.image} sizes="(max-width: 860px) 76vw, 24vw" />
+                    <span className="tag">{item.tag}</span>
+                    <div className="txt">
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="swipe-hint br" aria-hidden="true">
+            Swipe ⟶
+          </p>
         </div>
-        <div
-          className="track-wrap"
-          role="region"
-          aria-label="Products made at Antlertee, scroll sideways"
-          tabIndex={pinned ? undefined : 0}
-        >
-          <ul className="track" ref={trackRef} onFocus={onFocus}>
-            {gallery.map((item) => (
-              <li key={item.slug}>
-                <Link className="card" href={`/products/${item.slug}/`}>
-                  <Picture id={item.image} sizes="(max-width: 860px) 76vw, 24vw" />
-                  <span className="tag">{item.tag}</span>
-                  <div className="txt">
-                    <h3>{item.title}</h3>
-                    <p>{item.text}</p>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <p className="swipe-hint br" aria-hidden="true">
-          Swipe ⟶
-        </p>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

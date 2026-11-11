@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Faq } from "@/components/Faq";
 import { Picture } from "@/components/Picture";
 import { QuoteCta } from "@/components/QuoteCta";
-import { YarnToPack } from "@/components/process/YarnToPack";
 import { Reveal } from "@/components/Reveal";
 import { TechPackSection } from "@/components/techpack/TechPackSection";
 import { faqs, steps } from "@/content/copy";
@@ -24,40 +23,17 @@ export default function ProcessPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
-      <section className="pr-hero" data-nav="dark" aria-labelledby="process-title">
-        <div className="pr-hero-in">
-          <div className="pr-copy">
-            <p className="br kicker">( Process ) &nbsp; [ Tech pack → bulk ]</p>
-            <h1 id="process-title" className="h-page pr-title">
-              Yarn to
-              <br />
-              pack<span className="dot">.</span>
-            </h1>
-            <p className="pr-lead">
-              Pattern, stitch, wash, print and your label, all on our own floor in Karachi. Tech pack in, finished garments out.
-            </p>
-            <div className="pr-ctas">
-              <a className="pill solid lg" href="#tech-pack">
-                Start your tech pack
-              </a>
-              <a className="pill on-dark lg" href="#how-it-works">
-                How it works
-              </a>
-            </div>
-          </div>
-          <YarnToPack />
-        </div>
-      </section>
+      <TechPackSection />
 
-      <section id="how-it-works" className="section dark pr-how" data-nav="dark" aria-labelledby="how-title">
-        <div className="pr-how-head">
+      <section id="how-it-works" className="section dark pg-how" data-nav="dark" aria-labelledby="how-title">
+        <div className="pg-how-head">
           <p className="br kicker">( How it works ) &nbsp; [ 4 steps ]</p>
           <h2 id="how-title" className="h-section mt-4">
             How it
             <br />
             works<span className="dot">.</span>
           </h2>
-          <p className="pr-how-lead">
+          <p className="pg-how-lead">
             Four steps from your idea to finished, labelled garments. MOQ {facts.moqLong}; typical turnaround {facts.turnaround}.
           </p>
         </div>
@@ -87,9 +63,7 @@ export default function ProcessPage() {
         </ol>
       </section>
 
-      <TechPackSection />
-
-      <section className="section pr-faq" data-nav="light" aria-labelledby="faq-title">
+      <section className="section pg-faq" data-nav="light" aria-labelledby="faq-title">
         <div className="grid gap-10 md:grid-cols-[0.8fr_1.4fr] md:gap-[6vw]">
           <div>
             <p className="br kicker">( FAQs )</p>
