@@ -399,9 +399,16 @@ html.seen .loader {
   pointer-events: auto;
 }
 .hero-title {
-  font: 900 clamp(64px, 10.5vw, 190px) / 0.82 var(--font-display);
+  font: 900 clamp(64px, 9.6vw, 176px) / 0.84 var(--font-display);
   letter-spacing: var(--track);
-  margin-top: 18px;
+  margin-top: 0;
+}
+.hero-label {
+  margin-top: 22px;
+  color: var(--mute-inv);
+}
+.hero-label + .hero-tags {
+  margin-top: 8px;
 }
 .hero-lede {
   max-width: 34ch;
@@ -596,14 +603,15 @@ html.seen .loader {
   }
   .hero-slot {
     height: auto;
-    min-height: 0;
+    /* The 3D garment sizes itself to this box: it must never collapse to 0 on small screens. */
+    min-height: 30svh;
   }
   .garment {
     max-height: 40svh;
   }
   .hero-title {
-    font-size: 17vw;
-    margin-top: 12px;
+    font-size: 15.5vw;
+    margin-top: 0;
   }
   .hero-lede {
     margin-top: 16px;

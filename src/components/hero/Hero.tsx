@@ -147,15 +147,15 @@ export function Hero() {
 
       <div className="hero-in">
         <div>
-          <p className="br" style={{ color: "var(--mute-inv)" }}>
-            {hero.label[0]} &nbsp; {hero.label[1]}
-          </p>
           <h1 id="hero-title" className="hero-title">
-            Yarn
+            Your name,
             <br />
-            to pack<span className="dot">.</span>
+            sewn in<span className="dot">.</span>
           </h1>
           <p className="hero-lede">{hero.lede}</p>
+          <p className="hero-label br">
+            {hero.label[0]} &nbsp; {hero.label[1]}
+          </p>
           <p className="hero-tags br">
             {hero.tags.map((t) => (
               <span key={t}>{t}</span>
