@@ -8,13 +8,15 @@ const FOCUSABLE =
 
 /**
  * Modal dialog behaviour: locks page scroll, traps Tab inside `ref`, closes on Escape,
- * moves focus in on open and returns it to the previously focused element on close.
+ * moves focus in on open and returns it to the previously focused element on close
+ * (or to `returnFocus()`, e.g. the trigger, when given: Safari doesn't focus buttons on click).
  */
 export function useDialog(
   ref: RefObject<HTMLElement | null>,
   open: boolean,
   onClose: () => void,
   initialFocus?: RefObject<HTMLElement | null>,
+  returnFocus?: () => HTMLElement | null | undefined,
 ): void {
   useEffect(() => {
     if (!open) return;
@@ -47,7 +49,8 @@ export function useDialog(
     return () => {
       document.removeEventListener("keydown", onKey);
       lockScroll(false);
-      if (returnTo?.isConnected) returnTo.focus({ preventScroll: true });
+      const target = returnFocus?.() ?? returnTo;
+      if (target?.isConnected) target.focus({ preventScroll: true });
     };
-  }, [open, onClose, ref, initialFocus]);
+  }, [open, onClose, ref, initialFocus, returnFocus]);
 }

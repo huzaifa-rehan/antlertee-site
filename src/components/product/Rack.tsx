@@ -1,30 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Picture } from "@/components/Picture";
+import type { ImageId } from "@/content/images";
 import { categories, type Category, type Product } from "@/content/products";
-import { useDialog } from "@/lib/use-dialog";
-import { ProductDetails } from "./ProductDetails";
-
-const EASE = [0.76, 0, 0.24, 1] as const;
-
-function Hook() {
-  return (
-    <svg className="hook" viewBox="0 0 60 34" aria-hidden="true">
-      <path
-        d="M30 2 q6 0 6 6 q0 5 -6 7 v4 L4 32 h52 L30 19"
-        fill="none"
-        stroke="#6d6963"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+import { usePrefersReducedMotion } from "@/lib/use-media";
+import { ProductView } from "./ProductView";
+import { BayContents, GARMENT_SPRING, GarmentArt, HANGER_SIZES, Wardrobe, bayStyle } from "./Wardrobe";
 
 /** Slug of the product whose URL is showing, e.g. "/products/heat-reactive-puffer/". */
 function slugFromPath(pathname: string): string | null {
@@ -32,10 +17,26 @@ function slugFromPath(pathname: string): string | null {
   return m?.[1] ?? null;
 }
 
+const idFor = (label: string) => `bay-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+interface Flight {
+  slug: string;
+  image: ImageId;
+  rect: { top: number; left: number; width: number; height: number };
+}
+
+interface Group {
+  label: string;
+  /** Set for category compartments (the full wardrobe); the home rack has one unnamed compartment. */
+  category?: Category;
+  items: Product[];
+}
+
 interface RackProps {
   products: Product[];
   /** The page this rack lives on, restored when the product view closes. */
   basePath: "/" | "/products/";
+  /** Full wardrobe: one compartment per category, with the category tabs on the cornice. */
   showFilters?: boolean;
   /** Section heading level and copy. */
   title: string;
@@ -44,50 +45,130 @@ interface RackProps {
 }
 
 /**
- * "The rack." Garments on hangers. Clicking one flies its photo into a product view (motion layoutId)
- * and updates the URL to /products/<slug>/ so the view is shareable; that URL is also a static page.
- * Back button / Escape / "← Rack" close it and the photo flies back onto its hanger.
+ * "The rack": a wooden wardrobe with a compartment per category. Clicking a garment carries its photo off the
+ * hanger into a product view (motion layoutId) and sets the URL to /products/<slug>/ so the view is shareable
+ * (that URL is also a static page). Back button / Escape / "Back to the rack" send it home to the same hanger.
+ *
+ * The return trip flies a fixed-position copy (portalled to <body>) instead of the hanger card itself, because
+ * the card sits inside a horizontally scrolling rail that would clip it mid-flight.
  */
 export function Rack({ products, basePath, showFilters = false, title, intro, titleAs = "h2" }: RackProps) {
-  const pathname = usePathname();
+  const reduce = usePrefersReducedMotion();
   const [filter, setFilter] = useState<Category | "All">("All");
+  const sectionRef = useRef<HTMLElement>(null);
   const pushed = useRef(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
 
-  // The open product is derived from the URL, so browser back/forward just work.
-  const openSlug = slugFromPath(pathname);
-  const open = openSlug ? products.find((p) => p.slug === openSlug) : undefined;
-
-  const visible = useMemo(
-    () => (filter === "All" ? products : products.filter((p) => p.category === filter)),
-    [filter, products],
+  // The garment in the product view. Seeded from the URL when we land here through history (e.g. Back from
+  // /contact/ to a /products/<slug>/ entry we pushed); afterwards clicks and popstate drive it.
+  const [view, setView] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : (slugFromPath(window.location.pathname) ?? null),
   );
-  const counts = useMemo(() => {
-    const map = new Map<Category, number>();
-    products.forEach((p) => map.set(p.category, (map.get(p.category) ?? 0) + 1));
-    return map;
-  }, [products]);
+  const [closing, setClosing] = useState(false);
+  const [flight, setFlight] = useState<Flight | null>(null);
+
+  const viewed = view ? products.find((p) => p.slug === view) : undefined;
+
+  const groups = useMemo<Group[]>(() => {
+    if (!showFilters) return [{ label: "Featured", items: products }];
+    return categories
+      .map((c) => ({ label: c, category: c, items: products.filter((p) => p.category === c) }))
+      .filter((g) => g.items.length > 0);
+  }, [products, showFilters]);
+  const tabs: (Category | "All")[] = ["All", ...groups.flatMap((g) => (g.category ? [g.category] : []))];
+  const visible = filter === "All" ? groups : groups.filter((g) => g.category === filter);
+  const shownCount = visible.reduce((n, g) => n + g.items.length, 0);
+
+  const find = useCallback(
+    (attr: "data-slot" | "data-garment", slug: string) =>
+      sectionRef.current?.querySelector<HTMLElement>(`[${attr}="${slug}"]`) ?? null,
+    [],
+  );
+
+  /** Starts the exit: the view fades, and a copy of the photo flies from the stage back to its hanger. */
+  const beginClose = useCallback(() => {
+    if (!viewed || closing) return;
+    const slot = find("data-slot", viewed.slug);
+    // If the hanger has slid out of view along its rail, bring it back so the garment lands where it can be seen.
+    const rail = slot?.closest<HTMLElement>(".wd-scroll");
+    if (slot && rail) {
+      const s = slot.getBoundingClientRect();
+      const v = rail.getBoundingClientRect();
+      if (s.left < v.left + 16) rail.scrollLeft -= v.left + 16 - s.left;
+      else if (s.right > v.right - 16) rail.scrollLeft += s.right - (v.right - 16);
+    }
+    const r = slot?.getBoundingClientRect();
+    if (!reduce && r && r.width > 0) {
+      setFlight({
+        slug: viewed.slug,
+        image: viewed.image,
+        rect: { top: r.top, left: r.left, width: r.width, height: r.height },
+      });
+    }
+    setClosing(true);
+  }, [viewed, closing, reduce, find]);
 
   const openProduct = (slug: string) => {
     pushed.current = true;
     window.history.pushState(null, "", `/products/${slug}/`);
+    setFlight(null);
+    setClosing(false);
+    setView(slug);
   };
 
   const close = useCallback(() => {
+    beginClose();
     if (pushed.current) {
       pushed.current = false;
       window.history.back();
     } else {
       window.history.replaceState(null, "", basePath);
     }
-  }, [basePath]);
+  }, [beginClose, basePath]);
 
-  useDialog(dialogRef, Boolean(open), close, closeRef);
+  const finishClose = useCallback(() => {
+    setView(null);
+    setClosing(false);
+  }, []);
+
+  const returnFocus = useCallback(() => (view ? find("data-garment", view) : null), [view, find]);
+
+  // Browser back/forward: follow the URL.
+  useEffect(() => {
+    const onPop = () => {
+      const slug = slugFromPath(window.location.pathname);
+      if (slug && products.some((p) => p.slug === slug)) {
+        if (slug !== view || closing) {
+          setFlight(null);
+          setClosing(false);
+          setView(slug);
+        }
+      } else if (view && !closing) {
+        pushed.current = false;
+        beginClose();
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [products, view, closing, beginClose]);
+
+  // Safety net: drop the flying copy even if its layout animation never reports completion.
+  useEffect(() => {
+    if (!flight) return;
+    const t = window.setTimeout(() => setFlight(null), 1400);
+    return () => window.clearTimeout(t);
+  }, [flight]);
 
   const Title = titleAs;
+  const offRail = (slug: string) => view === slug || flight?.slug === slug;
+
   return (
-    <section className={`rack${showFilters ? " rack-full" : ""}`} id="rack" data-nav="light" aria-labelledby="rack-title">
+    <section
+      ref={sectionRef}
+      className={`rack${showFilters ? " rack-full" : ""}`}
+      id="rack"
+      data-nav="light"
+      aria-labelledby="rack-title"
+    >
       <div className="rack-head">
         <Title id="rack-title" className={titleAs === "h1" ? "h-page" : "h-section"}>
           {title}
@@ -96,132 +177,132 @@ export function Rack({ products, basePath, showFilters = false, title, intro, ti
         <p>{intro}</p>
       </div>
 
-      {showFilters && (
-        <div className="filters" role="group" aria-label="Filter by category">
-          {(["All", ...categories] as const).map((c) => (
-            <button
-              key={c}
-              type="button"
-              className="pill"
-              aria-pressed={filter === c}
-              onClick={() => setFilter(c)}
-            >
-              {c}
-              <span aria-hidden="true" style={{ opacity: 0.55 }}>
-                {c === "All" ? products.length : (counts.get(c) ?? 0)}
-              </span>
-              <span className="sr-only">products</span>
-            </button>
-          ))}
-        </div>
-      )}
-      {showFilters && (
-        <p className="sr-only" aria-live="polite">
-          {`Showing ${visible.length} ${filter === "All" ? "products" : filter}`}
-        </p>
-      )}
-
-      <div className="rail" aria-hidden="true" />
       <LayoutGroup>
-        <motion.ul className="hangers" layout={showFilters}>
+        <Wardrobe
+          cornice={
+            showFilters ? (
+              <div className="wd-tabs" role="group" aria-label="Filter by category">
+                {tabs.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className="wd-tab"
+                    aria-pressed={filter === c}
+                    onClick={() => setFilter(c)}
+                  >
+                    {c}
+                    <span aria-hidden="true">
+                      {c === "All" ? products.length : (groups.find((g) => g.category === c)?.items.length ?? 0)}
+                    </span>
+                    <span className="sr-only"> products</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="wd-engrave">Featured pieces</p>
+            )
+          }
+        >
           <AnimatePresence mode="popLayout" initial={false}>
-            {visible.map((p) => (
-              <motion.li
-                key={p.slug}
+            {visible.map((g) => (
+              <motion.section
+                key={g.label}
+                className="wd-bay"
+                style={bayStyle(g.items.length)}
+                aria-labelledby={showFilters ? idFor(g.label) : undefined}
+                aria-label={showFilters ? undefined : "Featured pieces"}
                 layout={showFilters ? "position" : false}
-                initial={{ opacity: 0, scale: 0.94 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.94 }}
-                transition={{ duration: 0.35 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
               >
-                <button
-                  type="button"
-                  className="hanger"
-                  aria-label={`Open ${p.name}, ${p.sub}`}
-                  aria-haspopup="dialog"
-                  onClick={() => openProduct(p.slug)}
+                <BayContents
+                  label={showFilters ? g.label : undefined}
+                  count={g.items.length}
+                  headingId={idFor(g.label)}
+                  headingLevel={titleAs === "h1" ? "h2" : "h3"}
                 >
-                  <Hook />
-                  {open?.slug === p.slug ? (
-                    <div className="frame" />
-                  ) : (
-                    <motion.div
-                      layoutId={`garment-${p.slug}`}
-                      className="frame"
-                      style={{ borderRadius: 14 }}
-                      transition={{ duration: 0.75, ease: EASE }}
-                    >
-                      <Picture id={p.image} sizes="(max-width: 520px) 46vw, (max-width: 860px) 30vw, 16vw" alt="" />
-                    </motion.div>
-                  )}
-                  <span className="lbl">
-                    {p.name}
-                    <small>{p.sub}</small>
-                  </span>
-                </button>
-              </motion.li>
+                  {g.items.map((p) => (
+                    <li key={p.slug} className="wd-item">
+                      <button
+                        type="button"
+                        className="wd-garment"
+                        data-garment={p.slug}
+                        aria-label={`${p.name}, ${p.sub}`}
+                        aria-haspopup="dialog"
+                        onClick={() => openProduct(p.slug)}
+                      >
+                        <GarmentArt
+                          product={p}
+                          card={
+                            offRail(p.slug) ? (
+                              <span className="wd-card is-out" data-slot={p.slug} />
+                            ) : (
+                              <motion.span
+                                className="wd-card"
+                                data-slot={p.slug}
+                                layoutId={`garment-${p.slug}`}
+                                transition={GARMENT_SPRING}
+                              >
+                                <Picture id={p.image} sizes={HANGER_SIZES} alt="" draggable={false} />
+                              </motion.span>
+                            )
+                          }
+                        />
+                      </button>
+                    </li>
+                  ))}
+                </BayContents>
+              </motion.section>
             ))}
           </AnimatePresence>
-        </motion.ul>
+        </Wardrobe>
+
+        {showFilters && (
+          <p className="sr-only" aria-live="polite">
+            {`Showing ${shownCount} ${filter === "All" ? "products" : filter}`}
+          </p>
+        )}
 
         {!showFilters && (
-          <p style={{ marginTop: 56 }}>
+          <p className="rack-more">
             <Link className="pill lg" href="/products/">
               See the full rack →
             </Link>
           </p>
         )}
 
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              key={open.slug}
-              ref={dialogRef}
-              className="pdp pdp-overlay"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="pdp-title"
-              data-lenis-prevent
-              initial={{ backgroundColor: "rgba(244,242,238,0)" }}
-              animate={{ backgroundColor: "rgba(244,242,238,1)" }}
-              exit={{ backgroundColor: "rgba(244,242,238,0)", transition: { duration: 0.45, delay: 0.25 } }}
-              transition={{ duration: 0.4 }}
+        {viewed && (
+          <ProductView
+            key={viewed.slug}
+            product={viewed}
+            closing={closing}
+            reduce={reduce}
+            onClose={close}
+            onClosed={finishClose}
+            returnFocus={returnFocus}
+          />
+        )}
+
+        {flight &&
+          createPortal(
+            <motion.span
+              className="wd-card wd-flight"
+              layoutId={`garment-${flight.slug}`}
+              transition={GARMENT_SPRING}
+              style={{
+                top: flight.rect.top,
+                left: flight.rect.left,
+                width: flight.rect.width,
+                height: flight.rect.height,
+              }}
+              onLayoutAnimationComplete={() => setFlight(null)}
             >
-              <motion.div
-                layoutId={`garment-${open.slug}`}
-                className="pdp-slot"
-                style={{ borderRadius: 22 }}
-                transition={{ duration: 0.75, ease: EASE }}
-              >
-                <Picture id={open.image} sizes="(max-width: 860px) 90vw, 40vw" priority />
-              </motion.div>
-              <motion.div
-                initial="hidden"
-                animate="show"
-                exit="hidden"
-                variants={{
-                  hidden: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
-                  show: { transition: { staggerChildren: 0.05, delayChildren: 0.3 } },
-                }}
-              >
-                <motion.div
-                  variants={{ hidden: { opacity: 0, x: 24 }, show: { opacity: 1, x: 0 } }}
-                  transition={{ duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
-                >
-                  <ProductDetails
-                    product={open}
-                    headingId="pdp-title"
-                    back={
-                      <button ref={closeRef} type="button" className="pill" onClick={close}>
-                        ← Rack
-                      </button>
-                    }
-                  />
-                </motion.div>
-              </motion.div>
-            </motion.div>
+              <Picture id={flight.image} sizes={HANGER_SIZES} alt="" draggable={false} />
+            </motion.span>,
+            document.body,
           )}
-        </AnimatePresence>
       </LayoutGroup>
     </section>
   );

@@ -7,14 +7,15 @@ import { AnimatePresence, motion } from "motion/react";
 import { nav } from "@/content/site";
 import { useDialog } from "@/lib/use-dialog";
 
-type Theme = "dark" | "light";
+/** "yellow" is the light theme over the yellow quote CTA, where the yellow "Get a quote" pill would vanish. */
+type Theme = "dark" | "light" | "yellow";
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href) || pathname === href.replace(/\/$/, "");
 }
 
 /**
- * Pill nav. Text colour follows the section under the nav: any element with data-nav="dark|light".
+ * Pill nav. Text colour follows the section under the nav: any element with data-nav="dark|light|yellow".
  * Under 860px the links collapse into a full-screen menu dialog.
  */
 export function SiteNav() {
@@ -35,7 +36,10 @@ export function SiteNav() {
       let theme: Theme = "light";
       for (const sec of document.querySelectorAll<HTMLElement>("[data-nav]")) {
         const r = sec.getBoundingClientRect();
-        if (r.top <= line && r.bottom > line) theme = sec.dataset.nav === "dark" ? "dark" : "light";
+        if (r.top <= line && r.bottom > line) {
+          const v = sec.dataset.nav;
+          theme = v === "dark" || v === "yellow" ? v : "light";
+        }
       }
       el.dataset.theme = theme;
     };

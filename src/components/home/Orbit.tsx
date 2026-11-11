@@ -79,16 +79,28 @@ export function Orbit() {
       gsap.to(band, { attr: { stroke: collections[i]?.accent ?? "#ffe500" }, duration: reduce ? 0 : 0.8 });
       const t = titleRefs.current;
       const s = specRefs.current;
+      // overwrite: a fast scroll can pass several pieces before a delayed fade-in starts; without it the
+      // late tween would bring an old title/spec back on top of the current one.
       if (prev >= 0) {
-        gsap.to(t[prev] ?? [], { opacity: 0, clipPath: "inset(0 0 0 100%)", duration: reduce ? 0 : 0.35 });
-        gsap.to(s[prev] ?? [], { opacity: 0, y: -8, duration: reduce ? 0 : 0.25 });
+        gsap.to(t[prev] ?? [], { opacity: 0, clipPath: "inset(0 0 0 100%)", duration: reduce ? 0 : 0.35, overwrite: true });
+        gsap.to(s[prev] ?? [], { opacity: 0, y: -8, duration: reduce ? 0 : 0.25, overwrite: true });
       }
       gsap.fromTo(
         t[i] ?? [],
         { opacity: 1, clipPath: "inset(0 100% 0 0)" },
-        { clipPath: "inset(0 0% 0 0)", duration: reduce ? 0 : 0.7, delay: prev >= 0 && !reduce ? 0.2 : 0, ease: "power3.out" },
+        {
+          clipPath: "inset(0 0% 0 0)",
+          duration: reduce ? 0 : 0.7,
+          delay: prev >= 0 && !reduce ? 0.2 : 0,
+          ease: "power3.out",
+          overwrite: true,
+        },
       );
-      gsap.fromTo(s[i] ?? [], { opacity: 0, y: reduce ? 0 : 10 }, { opacity: 1, y: 0, duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.25 });
+      gsap.fromTo(
+        s[i] ?? [],
+        { opacity: 0, y: reduce ? 0 : 10 },
+        { opacity: 1, y: 0, duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.25, overwrite: true },
+      );
     };
 
     // Hide all titles/specs, then reveal the first.

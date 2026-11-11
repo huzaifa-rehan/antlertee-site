@@ -262,8 +262,14 @@ html.seen .loader {
 .nav > * {
   pointer-events: auto;
 }
-.nav[data-theme="light"] {
+.nav[data-theme="light"],
+.nav[data-theme="yellow"] {
   color: var(--ink);
+}
+.nav[data-theme="yellow"] .pill.solid {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--yellow);
 }
 .wm {
   font: 900 22px/1 var(--font-display);
@@ -297,7 +303,8 @@ html.seen .loader {
 .nav-links .pill[aria-current="page"] span {
   color: var(--ink);
 }
-.nav[data-theme="light"] .nav-links .pill[aria-current="page"] span {
+.nav[data-theme="light"] .nav-links .pill[aria-current="page"] span,
+.nav[data-theme="yellow"] .nav-links .pill[aria-current="page"] span {
   color: var(--paper);
 }
 .nav-right {
@@ -940,7 +947,7 @@ html.seen .loader {
   }
 }
 
-/* ---------- rack ---------- */
+/* ---------- rack: the wardrobe ---------- */
 .rack {
   padding: 16vh var(--pad) 18vh;
 }
@@ -956,146 +963,601 @@ html.seen .loader {
   color: #5f5a54;
   line-height: 1.5;
 }
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 36px;
+.rack-more {
+  margin-top: 48px;
 }
-.rail {
+
+/* Wood is CSS only: layered gradients plus an inline SVG grain (fractal noise stretched along the grain). */
+.wd {
+  --gw: 176px; /* garment width; keep HANGER_SIZES in Wardrobe.tsx in step */
+  --frame: 18px;
+  --gap: 12px;
+  --grain-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='200'%3E%3Cfilter id='g' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.24' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.05 0 0 0 0 0.02 2.2 0 0 0 -0.95'/%3E%3C/filter%3E%3Crect width='640' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='640'%3E%3Cfilter id='g' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.24 0.004' numOctaves='4' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.05 0 0 0 0 0.02 2.2 0 0 0 -0.95'/%3E%3C/filter%3E%3Crect width='200' height='640' filter='url(%23g)'/%3E%3C/svg%3E");
+  --brass: linear-gradient(180deg, #f7e6b8 0%, #dcb96f 42%, #b48b44 78%, #9c763a 100%);
   position: relative;
-  margin-top: 9vh;
-  height: 12px;
-  border-radius: 12px;
-  background: linear-gradient(#fff, #b9b5ae 45%, #7d7973);
-  box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.4);
+  max-width: 1480px;
+  margin: clamp(36px, 7vh, 72px) auto 0;
 }
-.hangers {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 48px clamp(10px, 2vw, 28px);
-  margin: -6px 0 0;
-  padding: 0;
-  list-style: none;
+.wd-cornice {
+  position: relative;
+  z-index: 2;
+  margin: 0 -14px;
+  padding: 14px 20px 16px;
+  border-radius: 8px 8px 3px 3px;
+  background:
+    linear-gradient(180deg, rgba(255, 226, 180, 0.2), rgba(255, 226, 180, 0) 8px),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0) 10px),
+    var(--grain-h),
+    linear-gradient(180deg, #7b5232, #5c391f 60%, #4b2d18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 236, 205, 0.3),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.35),
+    0 12px 18px -10px rgba(0, 0, 0, 0.55);
 }
-.rack-full .hangers {
-  grid-template-columns: repeat(auto-fill, minmax(min(180px, 42vw), 1fr));
+/* Molding step under the cornice. */
+.wd-cornice::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 100%;
+  height: 6px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(180deg, #3c2312, #2b190c);
 }
-.rack-full .rail {
+.wd-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -6px;
+  padding: 2px 6px;
+}
+.wd-tabs::-webkit-scrollbar {
   display: none;
 }
-.rack-full .hangers {
-  margin-top: 40px;
+/* When the tabs overflow (phones, tablets) fade the end so the row reads as swipeable. */
+@media (max-width: 1100px) {
+  .wd-tabs {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+    padding-right: 40px;
+  }
 }
-.hanger {
+/* Engraved labels: a recessed groove in the wood; the active one is a brass plate. */
+.wd-tab {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 5px;
+  background: rgba(20, 10, 4, 0.3);
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.55),
+    inset 0 -1px 0 rgba(255, 230, 190, 0.1),
+    0 1px 0 rgba(255, 230, 190, 0.16);
+  color: #f4e8d4;
+  font: 600 12px/1 var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.wd-tab > span[aria-hidden] {
+  opacity: 0.62;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.wd-tab:hover {
+  background: rgba(20, 10, 4, 0.45);
+}
+.wd-tab[aria-pressed="true"] {
+  background: var(--brass);
+  color: #24170a;
+  text-shadow: 0 1px 0 rgba(255, 246, 222, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 232, 0.85),
+    inset 0 -1px 0 rgba(90, 60, 20, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.45);
+}
+.wd-engrave {
+  margin: 0;
+  padding: 13px 4px;
+  color: #f4e8d4;
+  font: 600 12px/1 var(--font-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+.wd-body {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  padding: calc(var(--frame) + 6px) var(--frame) var(--frame);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0) 14px calc(100% - 14px), rgba(0, 0, 0, 0.32)),
+    var(--grain-v),
+    linear-gradient(90deg, #5d3a21, #6c4528 30%, #603d22 70%, #53321a);
+}
+/* A compartment's width follows how many garments it holds (--n), so small ones share a row. */
+.wd-bay {
+  position: relative;
+  flex: var(--n) 1 calc(var(--n) * (var(--gw) + 26px) + 34px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.wd-panel {
+  position: relative;
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  background:
+    radial-gradient(120% 70% at 50% -12%, rgba(255, 206, 140, 0.24), rgba(255, 206, 140, 0) 62%),
+    var(--grain-v),
+    linear-gradient(180deg, #301e11, #25170d 55%, #1d120a);
+  box-shadow:
+    inset 0 16px 20px -12px rgba(0, 0, 0, 0.8),
+    inset 10px 0 16px -12px rgba(0, 0, 0, 0.7),
+    inset -10px 0 16px -12px rgba(0, 0, 0, 0.7),
+    inset 0 -10px 14px -10px rgba(0, 0, 0, 0.6);
+}
+.wd-shelf {
+  height: 30px;
+  margin: 0 -3px;
+  border-radius: 1px 1px 3px 3px;
+  background:
+    linear-gradient(180deg, rgba(255, 232, 196, 0.28), rgba(255, 232, 196, 0) 3px),
+    var(--grain-h),
+    linear-gradient(180deg, #875b38, #6b4528 60%, #5a3820);
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25),
+    0 3px 5px -2px rgba(0, 0, 0, 0.45);
+}
+/* Brass name plate screwed to the shelf edge. */
+.wd-plate {
+  position: absolute;
+  z-index: 1;
+  left: 14px;
+  bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 3px;
+  background: var(--brass);
+  color: #24170a;
+  font: 700 12px/1.1 var(--font-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 232, 0.8),
+    0 1px 2px rgba(0, 0, 0, 0.55);
+}
+.wd-plate > span[aria-hidden] {
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+.wd-plinth {
+  position: relative;
+  height: 16px;
+  margin: 0 10px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, #2b190c, #3e2514 45%, #28170b);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.5);
+}
+.wd-plinth::after {
+  content: "";
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  top: 100%;
+  height: 28px;
+  background: radial-gradient(50% 100% at 50% 0, rgba(13, 12, 11, 0.3), rgba(13, 12, 11, 0));
+}
+
+/* Rail of hangers: scrolls sideways when the garments don't fit. */
+.wd-rail {
+  position: relative;
+}
+.wd-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+  --fade: 48px;
+}
+.wd-scroll::-webkit-scrollbar {
+  display: none;
+}
+.wd-rail[data-end="false"] .wd-scroll {
+  mask-image: linear-gradient(90deg, #000 calc(100% - var(--fade)), transparent);
+}
+.wd-rail[data-start="false"] .wd-scroll {
+  mask-image: linear-gradient(90deg, transparent, #000 var(--fade));
+}
+.wd-rail[data-start="false"][data-end="false"] .wd-scroll {
+  mask-image: linear-gradient(90deg, transparent, #000 var(--fade) calc(100% - var(--fade)), transparent);
+}
+.wd-list {
+  position: relative;
+  display: flex;
+  gap: 26px;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  padding: 14px 30px 22px;
+  list-style: none;
+}
+/* Brushed brass rail. */
+.wd-list::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 0;
+  right: 0;
+  height: 9px;
+  border-radius: 5px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, rgba(0, 0, 0, 0.06) 1px 2px, rgba(0, 0, 0, 0) 2px 5px),
+    linear-gradient(180deg, #fff1cc 0%, #e2c17d 24%, #b48c47 58%, #7d5c27 86%, #5d431b 100%);
+  box-shadow:
+    0 7px 9px -4px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(255, 255, 255, 0.1);
+}
+/* Centre the garments when they fit, without breaking scrolling when they don't. */
+.wd-list > :first-child {
+  margin-left: auto;
+}
+.wd-list > :last-child {
+  margin-right: auto;
+}
+.wd-item {
+  position: relative;
+  flex: none;
+  width: var(--gw);
+  scroll-snap-align: center;
+}
+.wd-garment {
   display: block;
   width: 100%;
-  background: none;
+  padding: 0 0 4px;
   border: 0;
-  padding: 0;
-  cursor: pointer;
-  transform-origin: 50% 0;
-  transition: transform 0.6s cubic-bezier(0.3, 1.6, 0.4, 1);
-  text-align: center;
+  border-radius: 8px;
+  background: none;
   color: inherit;
   font: inherit;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.hanger:hover {
-  transform: rotate(-3deg);
-}
-.hanger .hook {
-  width: 56%;
-  margin: 0 auto -2px;
-}
-.hanger .frame {
+.wd-swing {
   position: relative;
-  aspect-ratio: 3/4;
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--paper-2);
-  box-shadow: 0 22px 34px -22px rgba(0, 0, 0, 0.5);
+  display: block;
+  transform-origin: 53% 0; /* the hook on the rail */
+  transition: transform 0.5s var(--ease-out);
 }
-.hanger .frame img,
-.pdp-slot img {
+/* Hook centre (svg y=9) sits on the rail centre; the shoulders overlap the top of the card. */
+.wd-hanger {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 72%;
+  height: auto;
+  margin: calc(8.5px - 5.4%) auto 0;
+}
+.wd-card {
+  position: relative;
+  z-index: 1;
+  display: block;
+  aspect-ratio: 3/4;
+  margin-top: -8.4%;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #3b2a1d;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 4px 6px -2px rgba(0, 0, 0, 0.55),
+    0 22px 26px -14px rgba(0, 0, 0, 0.85);
+  transition: box-shadow 0.5s var(--ease-out);
+}
+.wd-card picture,
+.wd-card img {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
-.hanger .lbl {
+.wd-card img {
+  object-fit: cover;
+  -webkit-user-drag: none;
+}
+.wd-card.is-out {
+  background: none;
+  box-shadow: none;
+}
+/* The copy that flies back to its hanger when the product view closes (portalled to <body>). */
+.wd-flight {
+  position: fixed;
+  z-index: 80;
+  margin: 0;
+  pointer-events: none;
+}
+.wd-lbl {
   display: block;
   margin-top: 12px;
-  font: 700 15px/1.2 var(--font-display);
-  letter-spacing: -0.01em;
+  padding: 0 4px;
+  color: #f2e8d9;
+  font: 700 14px/1.2 var(--font-display);
+  letter-spacing: -0.005em;
 }
-.hanger .lbl small {
+.wd-lbl small {
   display: block;
-  font: 500 12px var(--font-body);
-  color: var(--mute);
-  margin-top: 3px;
+  margin-top: 4px;
+  color: #c7b59e;
+  font: 500 12px/1.3 var(--font-body);
 }
+@media (hover: hover) {
+  .wd-garment:hover .wd-swing {
+    transform: translateY(-7px);
+    animation: wd-swing 1.5s cubic-bezier(0.25, 0.8, 0.3, 1);
+  }
+  .wd-garment:hover .wd-card {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 10px -4px rgba(0, 0, 0, 0.5),
+      0 36px 34px -16px rgba(0, 0, 0, 0.85);
+  }
+}
+.wd-garment:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.wd-garment:focus-visible .wd-swing {
+  transform: translateY(-7px);
+}
+.wd-garment:focus-visible .wd-card {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+}
+@keyframes wd-swing {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+  20% {
+    transform: translateY(-7px) rotate(-2.6deg);
+  }
+  42% {
+    transform: translateY(-7px) rotate(1.7deg);
+  }
+  64% {
+    transform: translateY(-7px) rotate(-0.9deg);
+  }
+  84% {
+    transform: translateY(-7px) rotate(0.35deg);
+  }
+  100% {
+    transform: translateY(-7px) rotate(0);
+  }
+}
+/* Brass knobs to slide a full rail along (mouse devices only). */
+.wd-knob {
+  position: absolute;
+  top: 42%;
+  z-index: 3;
+  display: none;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3cf, #d6b26a 45%, #8f6b2f);
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.55),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+.wd-knob::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  border: solid #2b1c0b;
+  border-width: 2px 2px 0 0;
+  transform: translateX(-2px) rotate(45deg);
+}
+.wd-knob.prev {
+  left: 10px;
+}
+.wd-knob.prev::before {
+  transform: translateX(2px) rotate(-135deg);
+}
+.wd-knob.next {
+  right: 10px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .wd-knob {
+    display: block;
+  }
+}
+.wd-knob[hidden] {
+  display: none !important;
+}
+@media (max-width: 1100px) {
+  .wd {
+    --gw: 164px;
+  }
+}
+/* Tablet and phone: every compartment is a full-width, swipeable rail. */
 @media (max-width: 859.98px) {
-  .hangers {
-    grid-template-columns: repeat(2, 1fr);
-    row-gap: 36px;
+  .wd {
+    --gw: 27vw;
+    --frame: 12px;
+    --gap: 10px;
   }
-  .rack-full .hangers {
-    grid-template-columns: repeat(2, 1fr);
+  .wd-cornice {
+    margin: 0 -6px;
+    padding: 10px 12px 12px;
+  }
+  .wd-bay {
+    flex-basis: 100%;
+  }
+  .wd-list {
+    gap: 15px;
+    padding-inline: 18px;
   }
 }
-@media (min-width: 520px) and (max-width: 859.98px) {
-  .hangers,
-  .rack-full .hangers {
-    grid-template-columns: repeat(3, 1fr);
+@media (max-width: 600px) {
+  .wd {
+    --gw: 34vw;
+    --frame: 8px;
+    --gap: 8px;
+  }
+  .wd-scroll {
+    --fade: 24px;
+  }
+  .wd-list {
+    gap: 12px;
+    padding-inline: 14px;
+  }
+  .wd-lbl {
+    font-size: 13.5px;
   }
 }
 
 /* ---------- product view (overlay + page) ---------- */
-.pdp {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 4vw;
-}
-.pdp-overlay {
+.pv {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: var(--paper);
-  padding: 86px var(--pad) 40px;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+.pv[data-closing] {
+  pointer-events: none;
+}
+.pv-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--paper);
+}
+/* Normal flow (no fixed-height grid), so a tall details column pushes the page down instead of overlapping. */
+.pv-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 16px var(--pad) 48px;
+}
+.pv-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+}
+.pv-esc {
+  color: var(--mute);
+}
+.pv-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 5vw;
+  padding-top: 12px;
+}
+.pv-media {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 26px; /* room for the floor shadow */
+}
+.pv-frame {
+  position: relative;
+  width: min(100%, calc((100svh - 190px) * 0.75), 560px);
+  aspect-ratio: 3/4;
+}
+.pv-info {
+  min-width: 0;
+}
+.pdp {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 5vw;
 }
 .pdp-page {
   min-height: 100svh;
   padding: 110px var(--pad) 60px;
 }
-.pdp-slot {
-  position: relative;
-  width: min(100%, calc(74svh * 0.75));
-  aspect-ratio: 3/4;
-  margin: 0 auto;
-  border-radius: 22px;
-  overflow: hidden;
-  background: var(--paper-2);
+.pdp-more {
+  padding: 0 var(--pad) 14vh;
 }
 .pdp-info {
-  max-width: 540px;
+  max-width: 560px;
+  min-width: 0;
+}
+.pdp-back {
+  margin-bottom: 24px;
+}
+.pdp-kicker,
+.pdp-label {
+  color: var(--mute);
 }
 .pdp-name {
-  font: 900 clamp(40px, 4.8vw, 76px) / 0.9 var(--font-display);
-  letter-spacing: var(--track);
   margin: 12px 0 18px;
+  font: 900 clamp(36px, 4.8vw, 76px) / 0.92 var(--font-display);
+  letter-spacing: var(--track);
+  overflow-wrap: break-word;
 }
 .pdp-desc {
   line-height: 1.6;
   color: #3d3934;
   font-size: 16px;
 }
+.spec-list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin: 22px 0 24px;
+  border-top: 1px solid var(--line);
+  font-size: 14.5px;
+}
+.spec-list > div {
+  display: contents;
+}
+.spec-list dt,
+.spec-list dd {
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.4;
+}
+.spec-list dt {
+  padding-right: 22px;
+  font-weight: 600;
+}
+.spec-list dd {
+  color: #4f4a44;
+}
+.pdp-label {
+  margin-bottom: 10px;
+}
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 22px 0;
+  margin: 0 0 28px;
   padding: 0;
   list-style: none;
 }
@@ -1105,39 +1567,132 @@ html.seen .loader {
   border-radius: 99px;
   font: 500 13px var(--font-body);
 }
-.spec-list {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 10px 22px;
-  margin: 18px 0 28px;
-  font-size: 14.5px;
-}
-.spec-list dt {
-  font-weight: 600;
-}
-.spec-list dd {
-  margin: 0;
-  color: #4f4a44;
-}
-.turn-note {
+.pdp-cta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin-top: 18px;
-  font-size: 13px;
+  gap: 12px 18px;
+}
+.pdp-price {
   color: var(--mute);
+  font-size: 14px;
 }
-.turn-note svg {
-  flex: none;
+
+/* Drag-to-turn stage: the card tilts in 3D; shade, sheen and floor shadow follow the angle. */
+.turn {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  perspective: 1100px;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
-@media (max-width: 859.98px) {
-  .pdp {
-    grid-template-columns: 1fr;
-    align-items: start;
-    gap: 26px;
+.turn[data-turnable] {
+  cursor: grab;
+}
+.turn[data-turnable]:active {
+  cursor: grabbing;
+}
+.turn:focus-visible {
+  outline-offset: 6px;
+}
+.turn-card {
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--paper-2);
+  box-shadow:
+    0 2px 4px rgba(13, 12, 11, 0.08),
+    0 30px 50px -28px rgba(13, 12, 11, 0.55);
+}
+.turn-card picture {
+  position: absolute;
+  inset: 0;
+}
+.turn-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.turn-shade,
+.turn-sheen {
+  position: absolute;
+  pointer-events: none;
+}
+.turn-shade {
+  inset: 0;
+}
+.turn-sheen {
+  top: -10%;
+  bottom: -10%;
+  left: 15%;
+  right: 15%;
+  opacity: 0;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0) 70%);
+  mix-blend-mode: soft-light;
+}
+.turn-floor {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 100%;
+  height: 26px;
+  background: radial-gradient(50% 50% at 50% 30%, rgba(13, 12, 11, 0.3), rgba(13, 12, 11, 0));
+  pointer-events: none;
+}
+.turn-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 99px;
+  background: rgba(13, 12, 11, 0.74);
+  color: var(--paper);
+  font: 600 12px/1 var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: turn-hint-in 0.4s 0.55s backwards;
+  transition: opacity 0.4s;
+}
+.turn-hint[data-used] {
+  opacity: 0;
+}
+@keyframes turn-hint-in {
+  from {
+    opacity: 0;
   }
-  .pdp-slot {
-    width: min(100%, calc(52svh * 0.75));
+}
+
+@media (max-width: 859.98px) {
+  .pv-main,
+  .pdp {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 28px;
+  }
+  .pv-frame {
+    width: min(100%, calc(58svh * 0.75), 420px);
+  }
+  .pv-esc {
+    display: none;
+  }
+  .pdp-page {
+    padding-top: 96px;
+  }
+  .pdp-info {
+    max-width: 640px;
   }
 }
 
@@ -1258,7 +1813,7 @@ html.seen .loader {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 .footer ul a {
   color: var(--paper);
@@ -1525,9 +2080,13 @@ select.input {
     font-size: 12px;
   }
 }
-.footer ul a {
-  display: inline-block;
-  padding: 6px 0;
+/* Footer links: 44px tall tap targets (the list gap is folded into the link height). */
+.footer ul a,
+.footer-bottom a {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1540,13 +2099,16 @@ select.input {
     animation-delay: 0s;
     animation-duration: 0.01s;
   }
-  .hanger,
+  .wd-swing,
+  .wd-card,
   .card img,
   .faq .sign {
     transition: none;
   }
-  .hanger:hover {
+  .wd-garment:hover .wd-swing,
+  .wd-garment:focus-visible .wd-swing {
     transform: none;
+    animation: none;
   }
 }
 

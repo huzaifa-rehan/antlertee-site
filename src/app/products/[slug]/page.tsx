@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Picture } from "@/components/Picture";
 import { ProductDetails } from "@/components/product/ProductDetails";
+import { TurnStage } from "@/components/product/TurnStage";
+import { BayContents, GarmentArt, Wardrobe, bayStyle } from "@/components/product/Wardrobe";
 import { QuoteCta } from "@/components/QuoteCta";
 import { getImage } from "@/content/images";
 import { getProduct, products } from "@/content/products";
@@ -50,8 +51,10 @@ export default async function ProductPage({ params }: Params) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article className="pdp pdp-page" data-nav="light" aria-labelledby="product-title">
-        <div className="pdp-slot">
-          <Picture id={product.image} sizes="(max-width: 860px) 90vw, 40vw" priority />
+        <div className="pv-media">
+          <div className="pv-frame">
+            <TurnStage image={product.image} alt={`${product.name}, ${product.sub}`} priority />
+          </div>
         </div>
         <ProductDetails
           product={product}
@@ -66,25 +69,26 @@ export default async function ProductPage({ params }: Params) {
       </article>
 
       {related.length > 0 && (
-        <section className="section" data-nav="light" aria-labelledby="related-title" style={{ paddingTop: 0 }}>
-          <h2 id="related-title" className="br" style={{ color: "var(--mute)", marginBottom: 20 }}>
-            ( More {product.category} )
-          </h2>
-          <ul className="hangers" style={{ marginTop: 0 }}>
-            {related.map((p) => (
-              <li key={p.slug}>
-                <Link className="hanger" href={`/products/${p.slug}/`} style={{ textDecoration: "none" }}>
-                  <div className="frame">
-                    <Picture id={p.image} sizes="(max-width: 860px) 46vw, 16vw" alt="" />
-                  </div>
-                  <span className="lbl">
-                    {p.name}
-                    <small>{p.sub}</small>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <section className="pdp-more" data-nav="light" aria-labelledby="related-title">
+          <Wardrobe
+            cornice={
+              <h2 id="related-title" className="wd-engrave">
+                More {product.category}
+              </h2>
+            }
+          >
+            <div className="wd-bay" style={bayStyle(related.length)}>
+              <BayContents count={related.length}>
+                {related.map((p) => (
+                  <li key={p.slug} className="wd-item">
+                    <Link className="wd-garment" href={`/products/${p.slug}/`} aria-label={`${p.name}, ${p.sub}`}>
+                      <GarmentArt product={p} />
+                    </Link>
+                  </li>
+                ))}
+              </BayContents>
+            </div>
+          </Wardrobe>
         </section>
       )}
       <QuoteCta title={`Make it\nyours`} />

@@ -21,6 +21,7 @@ Next.js (static export), TypeScript, Tailwind CSS, motion (Framer Motion) for UI
 - `src/content/copy.ts`: page copy (statement, about, process, FAQs).
 - `src/content/images.ts`: the **image manifest**. All images are placeholders taken from Instagram reel covers (some with baked-in text); swap the files in `public/img/` after the product shoot and update this manifest.
 - `src/content/credits.ts`: model and asset credits.
+- `src/components/product/`: the products wardrobe. `Wardrobe.tsx` (cabinet, compartments, hangers; wood is CSS only), `Rack.tsx` (category tabs, open/close and the shared-element flight), `ProductView.tsx` (the product dialog), `TurnStage.tsx` (drag to turn), `RailScroller.tsx` (swipeable rails), `ProductDetails.tsx` (info column shared with `/products/[slug]/`).
 - `src/components/hero/`: the hero. `HeroCanvas.tsx` is the R3F scene, `HeroSvg.tsx` the 2D fallback (reduced motion, no WebGL, low-end devices), `store.ts` the shared scroll progress.
 - `public/models/hoodie.glb`: the 3D hoodie (1.6 MB, meshopt-compressed; two meshes: garment + stitches).
 - `public/brand/`: logo cut from the client's artwork (`MARKETING/Antlertee/Untitled Design (7).png`): `logo-lockup-mask.png` (stag + wordmark, used as a CSS mask so it takes the nav/footer colour), `logo-full-ink.png` (loader), `logo-full-white.png` (the woven brand label in hero step 4). `src/app/icon.png` / `apple-icon.png` are the app icons.
