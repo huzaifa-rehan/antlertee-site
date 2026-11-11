@@ -2,14 +2,16 @@ import Link from "next/link";
 import { Faq } from "@/components/Faq";
 import { Picture } from "@/components/Picture";
 import { QuoteCta } from "@/components/QuoteCta";
+import { YarnToPack } from "@/components/process/YarnToPack";
 import { Reveal } from "@/components/Reveal";
+import { TechPackSection } from "@/components/techpack/TechPackSection";
 import { faqs, steps } from "@/content/copy";
 import { facts } from "@/content/site";
 import { pageMeta } from "@/lib/meta";
 
 export const metadata = pageMeta({
-  title: "Process and FAQs: tech pack to sample, bulk, QC and shipping",
-  description: `How private-label production works at Antlertee: send a tech pack or mockup, approve a sample, bulk production on our own floor, then QC and worldwide shipping. MOQ ${facts.moqLong}.`,
+  title: "Process, tech pack builder and FAQs: yarn to pack",
+  description: `How private-label production works at Antlertee: build or send your tech pack, approve a sample, bulk production on our own floor, then QC and worldwide shipping. MOQ ${facts.moqLong}.`,
   path: "/process/",
 });
 
@@ -22,19 +24,43 @@ export default function ProcessPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
-      <section className="page-hero dark" data-nav="dark" aria-labelledby="process-title">
-        <p className="br kicker">( Process ) &nbsp; [ Tech pack → bulk ]</p>
-        <h1 id="process-title" className="h-page" style={{ marginTop: 18 }}>
-          How it
-          <br />
-          works<span className="dot">.</span>
-        </h1>
-        <p className="lead">
-          Four steps from your idea to finished, labelled garments. MOQ {facts.moqLong}; typical turnaround {facts.turnaround}.
-        </p>
+      <section className="pr-hero" data-nav="dark" aria-labelledby="process-title">
+        <div className="pr-hero-in">
+          <div className="pr-copy">
+            <p className="br kicker">( Process ) &nbsp; [ Tech pack → bulk ]</p>
+            <h1 id="process-title" className="h-page pr-title">
+              Yarn to
+              <br />
+              pack<span className="dot">.</span>
+            </h1>
+            <p className="pr-lead">
+              Pattern, stitch, wash, print and your label, all on our own floor in Karachi. Tech pack in, finished garments out.
+            </p>
+            <div className="pr-ctas">
+              <a className="pill solid lg" href="#tech-pack">
+                Start your tech pack
+              </a>
+              <a className="pill on-dark lg" href="#how-it-works">
+                How it works
+              </a>
+            </div>
+          </div>
+          <YarnToPack />
+        </div>
       </section>
 
-      <section className="section dark" data-nav="dark" aria-label="Steps" style={{ paddingTop: 0 }}>
+      <section id="how-it-works" className="section dark pr-how" data-nav="dark" aria-labelledby="how-title">
+        <div className="pr-how-head">
+          <p className="br kicker">( How it works ) &nbsp; [ 4 steps ]</p>
+          <h2 id="how-title" className="h-section mt-4">
+            How it
+            <br />
+            works<span className="dot">.</span>
+          </h2>
+          <p className="pr-how-lead">
+            Four steps from your idea to finished, labelled garments. MOQ {facts.moqLong}; typical turnaround {facts.turnaround}.
+          </p>
+        </div>
         <ol className="grid gap-[10vh]">
           {steps.map((s) => (
             <li
@@ -45,10 +71,10 @@ export default function ProcessPage() {
                 {s.n}
               </span>
               <Reveal>
-                <h2 className="display text-[clamp(36px,4.6vw,72px)] leading-[0.92]">
+                <h3 className="display text-[clamp(36px,4.6vw,72px)] leading-[0.92]">
                   {s.title}
                   <span className="dot">.</span>
-                </h2>
+                </h3>
                 <p className="mt-5 max-w-[52ch] text-[17px] leading-relaxed text-[#c9c4bb]">{s.detail}</p>
               </Reveal>
               <Reveal delay={0.1}>
@@ -61,7 +87,9 @@ export default function ProcessPage() {
         </ol>
       </section>
 
-      <section className="section" data-nav="light" aria-labelledby="faq-title">
+      <TechPackSection />
+
+      <section className="section pr-faq" data-nav="light" aria-labelledby="faq-title">
         <div className="grid gap-10 md:grid-cols-[0.8fr_1.4fr] md:gap-[6vw]">
           <div>
             <p className="br kicker">( FAQs )</p>

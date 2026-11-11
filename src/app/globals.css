@@ -374,6 +374,19 @@ html.seen .loader {
   color: var(--paper);
   overflow: hidden;
 }
+/* The tallest the phone viewport gets (address bar hidden), so the hero always fills the screen.
+   --vh-hidden keeps the text and meter inside the part that is visible right now. */
+@supports (height: 100lvh) and (height: 100dvh) {
+  .hero {
+    height: 100lvh;
+    --vh-hidden: calc(100lvh - 100dvh);
+  }
+}
+/* When a phone's address bar hides mid-pin, the viewport grows past the hero's locked height:
+   keep that strip ink instead of showing the paper section underneath. */
+.pin-spacer:has(> .hero) {
+  background: var(--ink);
+}
 .hero-glow {
   position: absolute;
   inset: 0;
@@ -394,6 +407,7 @@ html.seen .loader {
 .hero-in {
   position: absolute;
   inset: 0;
+  bottom: var(--vh-hidden, 0px);
   display: grid;
   grid-template-columns: 1.05fr 1fr 0.55fr;
   align-items: center;
@@ -521,7 +535,7 @@ html.seen .loader {
   position: absolute;
   left: var(--pad);
   right: var(--pad);
-  bottom: 26px;
+  bottom: calc(26px + var(--vh-hidden, 0px));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -599,7 +613,8 @@ html.seen .loader {
     grid-template-rows: auto 1fr;
     align-content: stretch;
     gap: 6px;
-    padding-top: 84px;
+    /* Clears the fixed nav: 14px padding + the 76px logo, plus breathing room. */
+    padding-top: 124px;
     padding-bottom: 64px;
   }
   .hero-in > div:first-child {
@@ -629,6 +644,12 @@ html.seen .loader {
   }
   .meter .hint {
     display: none;
+  }
+  .brand-label {
+    padding: 9px 10px 8px;
+  }
+  .brand-label img {
+    height: 46px;
   }
   .meter .now {
     display: block;
@@ -695,7 +716,7 @@ html.seen .loader {
   flex-direction: column;
   justify-content: center;
   gap: 4vh;
-  padding: 90px 0 48px;
+  padding: 116px 0 48px;
 }
 .work-head {
   display: flex;
@@ -1689,7 +1710,7 @@ html.seen .loader {
     display: none;
   }
   .pdp-page {
-    padding-top: 96px;
+    padding-top: 124px;
   }
   .pdp-info {
     max-width: 640px;

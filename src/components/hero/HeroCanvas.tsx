@@ -5,7 +5,7 @@
  *
  *   0.00–0.30  Pattern & cut   ghost shell + crease lines; a yellow "laser" line sweeps up and leaves greige fabric
  *   0.30–0.60  Stitch          the stitch mesh sews itself in: a glowing yellow thread front cools to the stitch colour
- *   0.60–0.80  Wash            dip-dye: the real textures (black flame print) rise from the hem with a wet edge
+ *   0.60–0.80  Wash            dip-dye: a grey acid wash (flame print showing through) rises from the hem with a wet edge
  *   0.80–1.00  Print & brand   the garment settles into a 3/4 hero turn, rim light comes up, "YOUR BRAND" label appears
  *
  * Progress comes from `heroProgress` (GSAP ScrollTrigger scrub in <Hero>). Everything per-frame is written to
@@ -128,7 +128,12 @@ function garmentMaterial(source: THREE.MeshStandardMaterial, u: Uniforms): THREE
         float acsFront = uDye + (acsN - 0.5) * 0.45;
         float acsDyed = 1.0 - smoothstep(acsFront - 0.05, acsFront + 0.05, vAcsPos.y);
         vec3 acsGreige = uGreige * (0.88 + 0.22 * acsFbm(vAcsPos.xy * 16.0));
-        diffuseColor.rgb *= mix(acsGreige, acsTex.rgb, acsDyed);
+        // Grey acid wash (the model's own black reads as nothing on the ink background): marbled
+        // light/dark blotches, with the flame print kept as lighter lines from the texture's luminance.
+        float acsMarble = acsFbm(vAcsPos.xy * 4.5 + 1.6 * acsFbm(vAcsPos.zy * 3.0 + 7.0));
+        vec3 acsAcid = mix(vec3(0.075, 0.075, 0.072), vec3(0.36, 0.355, 0.345), smoothstep(0.4, 0.7, acsMarble));
+        acsAcid = min(acsAcid + vec3(dot(acsTex.rgb, vec3(0.299, 0.587, 0.114))) * 0.5, vec3(0.7));
+        diffuseColor.rgb *= mix(acsGreige, acsAcid, acsDyed);
         float acsWet = (1.0 - smoothstep(0.0, 0.14, abs(vAcsPos.y - acsFront))) * step(-1.3, uDye) * step(uDye, 1.3);
         diffuseColor.rgb *= 1.0 - 0.5 * acsWet;`,
       )
@@ -360,7 +365,9 @@ function tick(state: RootState, delta: number, parts: Parts, r: SceneRefs): void
     if (label) {
       const show = range(p, 0.86, 0.94);
       ANCHOR.set(parts.aspect * 0.42, 0.22, 0).applyMatrix4(root.current.matrixWorld).project(state.camera);
-      const x = (ANCHOR.x * 0.5 + 0.5) * state.size.width;
+      // Keep the whole label on screen (narrow phones): it may overlap the shoulder rather than be cut off.
+      const maxX = state.size.width - (show > 0 ? label.offsetWidth : 0) - 26;
+      const x = Math.min((ANCHOR.x * 0.5 + 0.5) * state.size.width, maxX);
       const y = (-ANCHOR.y * 0.5 + 0.5) * state.size.height;
       label.style.opacity = String(show);
       label.style.transform = `translate3d(${x.toFixed(1)}px, ${(y + (1 - show) * 14).toFixed(1)}px, 0)`;

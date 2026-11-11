@@ -16,6 +16,9 @@ const SEAMS = [
   "M348 337 L308 343",
 ];
 
+/** Washed fabric colour: grey acid wash, so the garment stays visible on the ink hero. */
+const ACID_GREY = "#76746f";
+
 const SCATTER: Record<string, gsap.TweenVars> = {
   hood: { x: -40, y: -150, rotation: -38 },
   slL: { x: -230, y: 30, rotation: -55 },
@@ -43,8 +46,8 @@ export function HeroSvg({ animated }: { animated: boolean }) {
       const masks = q(".seam-mask");
       if (!animated) {
         gsap.set(masks, { attr: { "stroke-dashoffset": 0 } });
-        gsap.set(q(".wash"), { opacity: 0.3 });
-        gsap.set(svg, { "--fabric": "#2f2f31" });
+        gsap.set(q(".wash"), { opacity: 0.5 });
+        gsap.set(svg, { "--fabric": ACID_GREY });
         gsap.set(q(".print"), { opacity: 1 });
         return;
       }
@@ -56,8 +59,8 @@ export function HeroSvg({ animated }: { animated: boolean }) {
       tl.to(q("[data-piece]"), { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, duration: 3.4, stagger: 0.12 }, 0)
         .to(q(".grainfx"), { opacity: 0.9, duration: 1 }, 2.6)
         .to(masks, { attr: { "stroke-dashoffset": 0 }, duration: 1.2, stagger: 0.35 }, 3.8)
-        .to(svg, { "--fabric": "#2f2f31", duration: 1.6 }, 7.2)
-        .to(q(".wash"), { opacity: 0.3, duration: 1.6 }, 7.4)
+        .to(svg, { "--fabric": ACID_GREY, duration: 1.6 }, 7.2)
+        .to(q(".wash"), { opacity: 0.5, duration: 1.6 }, 7.4)
         .fromTo(
           q(".print"),
           { opacity: 0, scale: 1.35, transformOrigin: "50% 50%" },

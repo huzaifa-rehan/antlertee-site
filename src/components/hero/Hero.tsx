@@ -148,9 +148,9 @@ export function Hero() {
       <div className="hero-in">
         <div>
           <h1 id="hero-title" className="hero-title">
-            Your name,
+            Your drop,
             <br />
-            sewn in<span className="dot">.</span>
+            made right<span className="dot">.</span>
           </h1>
           <p className="hero-lede">{hero.lede}</p>
           <p className="hero-label br">
