@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { Component, useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { hero } from "@/content/copy";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { getLenis } from "@/lib/lenis";
 import { detectHeroMode, type HeroMode } from "./capability";
 import { HeroSvg } from "./HeroSvg";
 import { heroLayout, heroProgress, phaseAt } from "./store";
@@ -49,10 +48,6 @@ export function Hero() {
   const nowRef = useRef<HTMLSpanElement>(null);
   const phasesRef = useRef<HTMLOListElement>(null);
   const labelRef = useRef<HTMLDivElement>(null);
-  const hintRef = useRef<HTMLSpanElement>(null);
-  const triggerRef = useRef<ScrollTrigger | null>(null);
-  const autoOffRef = useRef(false);
-  const [autoOff, setAutoOff] = useState(false);
 
   const onReady = useCallback(() => setReady(true), []);
   const onCanvasError = useCallback(() => setFailed(true), []);
@@ -98,7 +93,7 @@ export function Hero() {
     }
     const ctx = gsap.context(() => {
       const proxy = { p: heroProgress.get() };
-      const tween = gsap.to(proxy, {
+      gsap.to(proxy, {
         p: 1,
         ease: "none",
         onUpdate: () => heroProgress.set(proxy.p),
@@ -113,83 +108,11 @@ export function Hero() {
           invalidateOnRefresh: true,
         },
       });
-      triggerRef.current = tween.scrollTrigger ?? null;
     }, section);
     ScrollTrigger.sort();
     ScrollTrigger.refresh();
-    return () => {
-      triggerRef.current = null;
-      ctx.revert();
-    };
+    return () => ctx.revert();
   }, [mode]);
-
-  // Auto-play: if nobody scrolls for a few seconds while the hero is pinned, keep stitching on our own and
-  // land on the next section. Any wheel, touch, key or pointer input hands control straight back.
-  useEffect(() => {
-    if (mode !== "3d" && mode !== "svg") return;
-    if (mode === "3d" && !ready) return;
-    const IDLE_MS = 3000;
-    const FULL_MS = 11000; // the whole timeline, start to finish
-    const meter = meterRef.current;
-    let lastInput = performance.now();
-    let playing = false;
-    const setHint = (state: "idle" | "playing") => {
-      meter?.setAttribute("data-auto", state);
-      if (hintRef.current) hintRef.current.textContent = state === "playing" ? "Auto-playing: scroll to take over" : "Scroll to stitch";
-    };
-    const stop = () => {
-      if (!playing) return;
-      playing = false;
-      const lenis = getLenis();
-      lenis?.scrollTo(lenis.scroll, { immediate: true, force: true });
-      setHint("idle");
-    };
-    const onInput = () => {
-      lastInput = performance.now();
-      stop();
-    };
-    const events = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
-    events.forEach((e) => window.addEventListener(e, onInput, { passive: true }));
-    const tick = window.setInterval(() => {
-      const st = triggerRef.current;
-      const lenis = getLenis();
-      if (!st || !lenis || playing || autoOffRef.current || document.hidden) return;
-      if (performance.now() - lastInput < IDLE_MS) return;
-      const y = lenis.scroll;
-      if (y < st.start - 4 || y >= st.end - 4) return; // only while the hero is on screen and unfinished
-      const remaining = (st.end - y) / Math.max(1, st.end - st.start);
-      playing = true;
-      setHint("playing");
-      // Finish the timeline at an even pace, then glide the next section into view.
-      lenis.scrollTo(st.end, {
-        duration: Math.max(1.2, (remaining * FULL_MS) / 1000),
-        easing: (t: number) => t,
-        force: true,
-        onComplete: () => {
-          if (!playing) return;
-          lenis.scrollTo(st.end + window.innerHeight, {
-            duration: 1.4,
-            easing: (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2),
-            force: true,
-            onComplete: () => {
-              playing = false;
-              setHint("idle");
-            },
-          });
-        },
-      });
-    }, 400);
-    return () => {
-      window.clearInterval(tick);
-      events.forEach((e) => window.removeEventListener(e, onInput));
-      stop();
-    };
-  }, [mode, ready]);
-
-  const toggleAuto = () => {
-    autoOffRef.current = !autoOffRef.current;
-    setAutoOff(autoOffRef.current);
-  };
 
   // Phase list, meter and percentage follow the progress without React re-renders.
   useEffect(() => {
@@ -279,20 +202,13 @@ export function Hero() {
       )}
 
       {mode !== "static" && (
-        <div className="meter br" ref={meterRef} data-auto="idle">
-          <span className="hint" ref={hintRef} aria-hidden="true">
-            Scroll to stitch
-          </span>
-          <span className="now" ref={nowRef} aria-hidden="true">
+        <div className="meter br" ref={meterRef} aria-hidden="true">
+          <span className="hint">Scroll to stitch</span>
+          <span className="now" ref={nowRef}>
             01 Pattern &amp; cut
           </span>
-          <i aria-hidden="true" />
-          <span ref={pctRef} aria-hidden="true">
-            0%
-          </span>
-          <button type="button" className="auto-btn" aria-pressed={!autoOff} onClick={toggleAuto}>
-            Auto-play {autoOff ? "off" : "on"}
-          </button>
+          <i />
+          <span ref={pctRef}>0%</span>
         </div>
       )}
     </section>

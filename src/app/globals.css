@@ -272,7 +272,7 @@ html.seen .loader {
 }
 .wm-logo {
   display: block;
-  width: clamp(54px, 4.6vw, 66px);
+  width: clamp(76px, 7vw, 108px);
   aspect-ratio: 520 / 518;
   background: currentColor;
   -webkit-mask: url(/brand/logo-lockup-mask.png) center / contain no-repeat;
@@ -531,28 +531,6 @@ html.seen .loader {
 }
 .meter .now {
   display: none;
-  color: var(--paper);
-}
-.meter[data-auto="playing"] .hint {
-  color: var(--yellow);
-}
-.auto-btn {
-  flex: none;
-  height: 28px;
-  padding: 0 12px;
-  border: 1px solid var(--line-inv);
-  border-radius: 99px;
-  background: none;
-  color: inherit;
-  font: 600 10.5px/1 var(--font-body);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-}
-.auto-btn:hover,
-.auto-btn[aria-pressed="true"] {
-  border-color: var(--yellow);
   color: var(--paper);
 }
 .brand-tag {
@@ -1527,10 +1505,6 @@ select.input {
 @media (pointer: coarse), (max-width: 859.98px) {
   .pill {
     min-height: 44px;
-  }
-  .auto-btn {
-    height: 40px;
-    font-size: 12px;
   }
   .o-dots button {
     width: 44px;

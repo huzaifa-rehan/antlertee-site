@@ -26,9 +26,6 @@ Next.js (static export), TypeScript, Tailwind CSS, motion (Framer Motion) for UI
 - `public/brand/`: logo cut from the client's artwork (`MARKETING/Antlertee/Untitled Design (7).png`): `logo-lockup-mask.png` (stag + wordmark, used as a CSS mask so it takes the nav/footer colour), `logo-full-ink.png` (loader), `logo-full-white.png` (the woven brand label in hero step 4). `src/app/icon.png` / `apple-icon.png` are the app icons.
 - Product photos: Instagram thumbnails plus higher-res unbranded photos from the client's Drive folder "ACS CONTENT" (`RESEARCH/drive-photos-web/`). Client-branded pieces (Prophetic Living, Just Sunnah It, team jerseys, etc.) are deliberately left off until permission is given.
 
-## Hero auto-play
-If nobody scrolls, wheels, touches or presses a key for 3 s while the hero is on screen (after the 3D model has loaded), the page scrolls itself through the remaining stitch phases at an even pace and then glides the next section into view. Any input hands control back instantly. The "Auto-play on/off" button in the meter turns it off (WCAG 2.2.2); it never runs under reduced motion.
-
 ## The hero ("Yarn to pack.")
 A pinned, scroll-scrubbed scene in four phases matching the side labels:
 1. Pattern & cut: a ghostly hoodie turns slowly.
