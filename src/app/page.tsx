@@ -1,4 +1,4 @@
-import { Hero } from "@/components/hero/Hero";
+import { HomeHero } from "@/components/home/HomeHero";
 import { Orbit } from "@/components/home/Orbit";
 import { ProcessProof } from "@/components/home/ProcessProof";
 import { Statement } from "@/components/home/Statement";
@@ -35,7 +35,7 @@ export default function HomePage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }} />
-      <Hero />
+      <HomeHero />
       <Statement />
       <Marquee items={marquee} />
       <WorkGallery />

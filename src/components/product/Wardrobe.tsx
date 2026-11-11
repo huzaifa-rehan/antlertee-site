@@ -16,15 +16,16 @@ export function bayStyle(count: number): BayStyle {
   return { "--n": count };
 }
 
-/** Wire hook + oak shoulders. Decorative; the hook curls over the rail. */
+// Silver wire hanger: the hook over the rail, a twisted neck, then the shoulder wire and bottom bar.
+const HANGER_WIRE = "M60 30 V9 A5.25 5.25 0 0 1 70.5 9 V12 M60 30 L7 43.5 Q2 45.5 6.5 47 H113.5 Q118 45.5 113 43.5 L60 30";
+
+/** Chrome wire hanger. Decorative; the hook curls over the rail. */
 export function HangerSvg() {
   return (
     <svg className="wd-hanger" viewBox="0 0 120 50" aria-hidden="true" focusable="false">
-      <path d="M60 30 V9 A5.25 5.25 0 0 1 70.5 9 V12" fill="none" stroke="#7d8287" strokeWidth="3" strokeLinecap="round" />
-      <path d="M60 30 V9 A5.25 5.25 0 0 1 70.5 9 V12" fill="none" stroke="#e4e7ea" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M4 42 Q32 30 60 26 Q88 30 116 42 L116 47 Q88 36 60 32 Q32 36 4 47 Z" fill="#b07d48" />
-      <path d="M4 42 Q32 30 60 26 Q88 30 116 42" fill="none" stroke="#e2bb84" strokeWidth="1.2" />
-      <circle cx="60" cy="29" r="2.6" fill="#d9dcdf" stroke="#7d8287" strokeWidth="0.8" />
+      <path d={HANGER_WIRE} fill="none" stroke="#6f757b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={HANGER_WIRE} fill="none" stroke="#eef1f3" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M57.6 25.5 L62.4 27.5 M57.6 28.5 L62.4 30.5" stroke="#6f757b" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   );
 }

@@ -17,6 +17,16 @@ export const hero = {
   ],
 } as const;
 
+/** The home hero's "Yarn to pack." animation: knitting, the four making phases, then packing for bulk. */
+export const yarnToPackPhases = [
+  { n: "01", title: "Knit", detail: "Yarn to fabric, custom GSM" },
+  { n: "02", title: "Pattern & cut", detail: "Your fit, cut to pattern" },
+  { n: "03", title: "Stitch", detail: "Cut & sew, export finishing" },
+  { n: "04", title: "Wash", detail: "Acid, mineral, distressed" },
+  { n: "05", title: "Print & brand", detail: "Screen, puff, embroidery" },
+  { n: "06", title: "Fold & pack", detail: "QC, fold, box & ship" },
+] as const;
+
 export const statement = {
   text: "We build garments for brands that refuse average. Heavyweight knits, specialised washes, print and embroidery, from your tech pack to bulk, under one roof in Karachi.",
   meta: ["( Karachi, PK )", `[ ${facts.brandsServed} brands ]`, "[ Exported worldwide ]"],

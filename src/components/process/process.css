@@ -1,4 +1,4 @@
-/* Process page: "Yarn to pack." hero animation and section heads. Prefixed .pr-; loaded only on /process/. */
+/* "Yarn to pack." hero animation (.pr-) and the home hero around it (.home-). Loaded with <YarnToPack>. */
 
 .pr-hero {
   background: var(--ink);
@@ -110,7 +110,70 @@
   stroke-dasharray: 1.5 1.5;
 }
 
-/* Woven label card (as in the home hero's last step) */
+/* Knit: yarn cones, knitting bed and carriage */
+.pr-yarn {
+  fill: none;
+  stroke: #e6e0d3;
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+}
+.pr-cone {
+  fill: #e6e0d3;
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 0.8;
+}
+.pr-cone-lines {
+  fill: none;
+  stroke: #c9bfad;
+  stroke-width: 1.2;
+}
+.pr-cone-core {
+  fill: var(--yellow);
+}
+.pr-bed {
+  fill: #1c1b19;
+  stroke: rgba(255, 229, 0, 0.5);
+  stroke-width: 0.8;
+}
+.pr-needles {
+  fill: none;
+  stroke: var(--yellow);
+  stroke-width: 1;
+  opacity: 0.7;
+}
+.pr-carriage {
+  fill: var(--yellow);
+}
+
+/* Pack: kraft box, yellow tape, our label */
+.pr-flap {
+  fill: #c99c6c;
+  stroke: rgba(60, 38, 18, 0.35);
+  stroke-width: 0.8;
+}
+.pr-box-body {
+  fill: #b8895a;
+  stroke: rgba(60, 38, 18, 0.4);
+  stroke-width: 0.8;
+}
+.pr-box-crease {
+  fill: none;
+  stroke: rgba(60, 38, 18, 0.35);
+}
+.pr-box-lid {
+  fill: #a57a4f;
+}
+.pr-tape {
+  fill: var(--yellow);
+}
+.pr-box-label-card {
+  fill: #0d0c0b;
+  stroke: var(--yellow);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 2;
+}
+
+/* Woven label card */
 .pr-label {
   position: absolute;
   left: 58%;
@@ -266,6 +329,79 @@
 }
 .pr-phases li[data-on="true"] b {
   color: var(--yellow);
+}
+/* Five phases in two columns: "Fold & pack" closes the list across both. */
+.pr-phases li:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* Home hero: the "Yarn to pack." animation beside the headline, one full screen. */
+.home-hero {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 6vh;
+}
+.home-hero .pr-hero-in {
+  width: 100%;
+}
+.home-title {
+  font-size: clamp(56px, 8.6vw, 156px);
+}
+.home-hero .pr-phases {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 640px;
+}
+.home-label {
+  margin-top: 22px;
+  color: var(--mute-inv);
+}
+.home-label + .home-tags {
+  margin-top: 8px;
+}
+.home-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  color: var(--mute-inv);
+}
+@media (max-width: 859.98px) {
+  .home-hero {
+    justify-content: flex-start;
+    padding-bottom: 20px;
+  }
+  .home-hero .pr-hero-in {
+    row-gap: 12px;
+  }
+  .home-title {
+    font-size: 15.5vw;
+  }
+  .home-hero .pr-lead {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+  .home-label {
+    margin-top: 14px;
+  }
+  .home-hero .pr-ctas {
+    margin-top: 16px;
+  }
+  /* The meter names the current phase; the list would push the garment off the first screen. */
+  .home-hero .pr-phases {
+    display: none;
+  }
+  /* Size the stage to the height left on the first screen. */
+  .home-hero .pr-fig {
+    width: min(100%, calc((100svh - 565px) * 1.04));
+    min-width: 240px;
+  }
+}
+@media (max-width: 859.98px) and (max-height: 720px) {
+  .home-hero .pr-lead {
+    display: none;
+  }
 }
 
 /* How it works head */
