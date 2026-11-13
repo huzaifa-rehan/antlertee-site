@@ -36,6 +36,13 @@ html {
   background: var(--paper);
   overflow-x: clip;
   -webkit-text-size-adjust: 100%;
+  /* The page still scrolls; only the visible bar on the right is hidden. */
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
 }
 body {
   font-family: var(--font-body);

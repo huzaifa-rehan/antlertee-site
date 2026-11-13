@@ -139,28 +139,6 @@
   height: 2px;
   background: rgba(244, 242, 238, 0.18);
 }
-.tph-replay {
-  flex: none;
-  min-height: 44px;
-  margin: -12px 0;
-  padding: 0 4px;
-  border: 0;
-  background: none;
-  color: var(--paper);
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--yellow);
-  text-underline-offset: 4px;
-  cursor: pointer;
-  pointer-events: auto;
-}
-.tph-replay:disabled {
-  opacity: 0.4;
-  cursor: default;
-  text-decoration-color: transparent;
-}
 .tph-meter i::after {
   content: "";
   position: absolute;

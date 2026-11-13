@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { contact, whatsappLink } from "@/content/site";
 
-/** Yellow "Bring us your tech pack." call to action, used at the bottom of most pages. */
-export function QuoteCta({ title = "Bring us your tech pack" }: { title?: string }) {
+/** Yellow "Got a design? We'll build it." call to action, used at the bottom of most pages. */
+export function QuoteCta({ title = "Got a design?\nWe'll build it" }: { title?: string }) {
   return (
     <section className="cta-b" data-nav="yellow" aria-labelledby="cta-title">
       <p className="br">Start your next drop</p>

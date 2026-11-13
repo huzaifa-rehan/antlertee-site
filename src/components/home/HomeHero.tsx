@@ -19,7 +19,7 @@ export function HomeHero() {
           <p className="pr-lead">{hero.lede}</p>
           <div className="pr-ctas">
             <Link className="pill solid lg" href="/process/#tech-pack">
-              Start your tech pack
+              Start your clothing line
             </Link>
             <Link className="pill on-dark lg" href="/products/">
               See the rack

@@ -49,7 +49,7 @@ export default function HomePage() {
       />
       <ClientWork />
       <ProcessProof />
-      <QuoteCta title={"Bring us your\ntech pack"} />
+      <QuoteCta />
     </>
   );
 }

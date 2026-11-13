@@ -502,7 +502,8 @@ export function YarnToPack() {
       return;
     }
 
-    let t = KNIT + FINAL;
+    // The server render shows the finished garment. Capable devices then start from the knit so the 3D finish and fold play first.
+    let t = detectHeroMode() === "3d" ? 0 : KNIT + FINAL;
     let raf = 0;
     let last = 0;
     let running = false;
