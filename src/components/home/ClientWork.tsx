@@ -6,23 +6,24 @@ import { CollabLockup } from "./CollabLockup";
 /** The "Antlertee x Spotify" feature: lockup, short text and three photos of the jackets. */
 function SpotifyFeature() {
   return (
-    <div className="cw-spot">
-      <Reveal className="cw-spot-copy">
-        <p className="br kicker">Featured collab</p>
-        <h2 id="cw-spot-title" className="sr-only">
-          Antlertee x {spotify.title}
-        </h2>
-        <CollabLockup />
-        <h3 className="cw-sub">{spotify.title}</h3>
-        <p>{spotify.text}</p>
-      </Reveal>
-      <ul className="cw-spot-grid">
-        {spotify.images.map((img, i) => (
-          <Reveal as="li" key={img.id} delay={i * 0.08}>
-            <Picture id={img.id} sizes="(max-width: 860px) 44vw, 20vw" />
-          </Reveal>
-        ))}
-      </ul>
+    <div className="cw-spot-wrap">
+      <h2 id="cw-spot-title" className="h-section">
+        Featured collab<span className="dot">.</span>
+      </h2>
+      <div className="cw-spot">
+        <Reveal className="cw-spot-copy">
+          <CollabLockup />
+          <h3 className="cw-sub">{spotify.title}</h3>
+          <p>{spotify.text}</p>
+        </Reveal>
+        <ul className="cw-spot-grid">
+          {spotify.images.map((img, i) => (
+            <Reveal as="li" key={img.id} delay={i * 0.08}>
+              <Picture id={img.id} sizes="(max-width: 860px) 44vw, 20vw" />
+            </Reveal>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

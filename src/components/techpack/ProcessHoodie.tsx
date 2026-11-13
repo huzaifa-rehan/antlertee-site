@@ -1,29 +1,30 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { hero } from "@/content/copy";
+import {
+  Component,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
 import { detectHeroMode, type HeroMode } from "@/components/hero/capability";
+import { createGhostInput, type GhostInput } from "@/components/hero/ghostInput";
 import { HeroSvg } from "@/components/hero/HeroSvg";
-import { clamp01, heroLayout, heroProgress, phaseAt } from "@/components/hero/store";
+import { usePrefersReducedMotion } from "@/lib/use-media";
 
 // three + R3F + drei live only in this chunk, fetched after hydration and only when the 3D hoodie is used.
-const HeroCanvas = dynamic(() => import("@/components/hero/HeroCanvas"), { ssr: false });
-
-/**
- * The hoodie's timeline ends here: the grey acid wash is complete (the hero scene's wash phase ends at 0.80) and the
- * garment has settled into its 3/4 turn. The "your brand" label that follows in the home hero is not used here.
- */
-const END = 0.84;
-
-/** Seconds the hoodie takes to go from ghost to the finished wash. */
-const DURATION = 9;
-/** Seconds the finished garment is held before the loop fades out and starts again. */
-const HOLD = 3.2;
-/** Seconds of cross-fade at the end and the start of each loop. */
-const FADE = 0.6;
+const GhostHoodie = dynamic(() => import("@/components/hero/GhostHoodie"), { ssr: false });
 
 const subscribeNever = () => () => {};
+/** Drag sensitivity: radians per pixel. */
+const TURN = 0.011;
+const TILT = 0.004;
+const SLEEVE = 0.009;
 
 class CanvasBoundary extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -40,114 +41,136 @@ class CanvasBoundary extends Component<{ onError: () => void; children: ReactNod
 }
 
 /**
- * The Process page hero garment: the 3D hoodie plays by itself, in a loop, from a transparent ghost to the grey
- * acid-washed garment, holds the finished piece for a moment, fades out and starts again (no button needed). It reuses
- * the home hero's scene (HeroCanvas) and 2D fallback (HeroSvg), both driven by `heroProgress`. The clock only runs
- * while the hero is on screen, and reduced motion gets the finished garment straight away.
+ * The Process page hero garment: the transparent ghost hoodie, floating, that the visitor turns by dragging (mouse or
+ * touch; vertical swipes still scroll the page) or with the arrow keys, with inertia, a drift back to a 3/4 pose and
+ * swinging sleeves (a drag on either side grabs that sleeve). Rendering stops offscreen and in hidden tabs; reduced
+ * motion drops the float and renders only on input. Without capable WebGL it shows the 2D drawing instead.
  */
 export function ProcessHoodie() {
   const detected = useSyncExternalStore<HeroMode>(subscribeNever, detectHeroMode, () => "pending");
+  const reduced = usePrefersReducedMotion();
   const [failed, setFailed] = useState(false);
-  const mode: HeroMode = failed && detected === "3d" ? "svg" : detected;
+  // Reduced motion still gets the draggable 3D hoodie (it only moves on input); ?hero=static forces the 2D still.
+  const [forcedStatic] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("hero") === "static");
+  const wants3d = detected === "3d" || (detected === "static" && reduced && !forcedStatic);
+  const mode: HeroMode = wants3d ? (failed ? "svg" : "3d") : detected;
   const [ready, setReady] = useState(false);
   const [active, setActive] = useState(true);
-  const activeRef = useRef(true);
+  const [touched, setTouched] = useState(false);
+  const inputRef = useRef<GhostInput>(createGhostInput());
 
   const stageRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const nowRef = useRef<HTMLSpanElement>(null);
-  const meterRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ id: number; x: number; y: number; t: number; mode: "turn" | "sleeve" } | null>(null);
 
   const onReady = useCallback(() => setReady(true), []);
   const onError = useCallback(() => setFailed(true), []);
 
-  // The scene fills this stage and centres the garment in it.
-  useEffect(() => {
-    heroLayout.cx = 0.5;
-    heroLayout.cy = 0.5;
-    heroLayout.w = 1;
-    heroLayout.h = 1;
-  }, []);
-
-  // Stop rendering (and the clock) while the hero is offscreen.
+  // Stop rendering while the hero is offscreen or the tab is hidden.
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) return;
+    let inView = true;
+    const update = () => setActive(inView && !document.hidden);
     const io = new IntersectionObserver(
       ([entry]) => {
-        const on = Boolean(entry?.isIntersecting);
-        activeRef.current = on;
-        setActive(on);
+        inView = Boolean(entry?.isIntersecting);
+        update();
       },
       { rootMargin: "120px" },
     );
     io.observe(stage);
-    return () => io.disconnect();
-  }, []);
-
-  // The clock: 0 -> END over DURATION seconds, a short hold, then around again. The 3D scene waits until its first
-  // frame is on screen.
-  const canPlay = mode === "svg" || (mode === "3d" && ready);
-  useEffect(() => {
-    if (mode === "static") {
-      heroProgress.set(END);
-      return;
-    }
-    if (!canPlay) {
-      heroProgress.set(0);
-      return;
-    }
-    const CYCLE = DURATION + HOLD;
-    const canvas = canvasRef.current;
-    let elapsed = 0;
-    let last = performance.now();
-    let frame = 0;
-    heroProgress.set(0);
-    const tick = (now: number) => {
-      const dt = Math.min((now - last) / 1000, 0.1);
-      last = now;
-      if (activeRef.current) elapsed = (elapsed + dt) % CYCLE;
-      heroProgress.set(END * clamp01(elapsed / DURATION));
-      // Fade the 3D canvas out at the end of the hold and back in at the start, so the restart is not a hard cut.
-      if (canvas) {
-        const fadeIn = clamp01(elapsed / FADE);
-        const fadeOut = clamp01((CYCLE - elapsed) / FADE);
-        canvas.style.opacity = String(Math.min(fadeIn, fadeOut).toFixed(3));
-      }
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
+    document.addEventListener("visibilitychange", update);
     return () => {
-      cancelAnimationFrame(frame);
-      if (canvas) canvas.style.opacity = "";
+      io.disconnect();
+      document.removeEventListener("visibilitychange", update);
     };
-  }, [mode, canPlay]);
-
-  // Phase name and meter follow the progress without React re-renders.
-  useEffect(() => {
-    let last = -1;
-    return heroProgress.subscribe((p) => {
-      meterRef.current?.style.setProperty("--p", clamp01(p / END).toFixed(4));
-      const i = Math.min(phaseAt(p), 2);
-      if (i === last) return;
-      last = i;
-      const ph = hero.phases[i];
-      if (nowRef.current && ph) nowRef.current.textContent = `${ph.n} ${ph.title}`;
-    });
   }, []);
+
+  const firstTouch = () => {
+    inputRef.current.lastInput = performance.now();
+    if (!touched) setTouched(true);
+  };
+
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    const input = inputRef.current;
+    if (e.button !== 0) return;
+    const box = e.currentTarget.getBoundingClientRect();
+    const fx = (e.clientX - box.left) / box.width;
+    const fy = (e.clientY - box.top) / box.height;
+    // The outer fifths at sleeve height grab that sleeve; anywhere else turns the hoodie.
+    const side = fy > 0.32 && fy < 0.92 ? (fx < 0.22 ? -1 : fx > 0.78 ? 1 : 0) : 0;
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, mode: side ? "sleeve" : "turn" };
+    input.grab = side;
+    input.grabOut = 0;
+    input.grabFwd = 0;
+    input.yawVel = side ? input.yawVel : 0;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    firstTouch();
+  };
+  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    const input = inputRef.current;
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    const dt = Math.max((e.timeStamp - d.t) / 1000, 1 / 240);
+    if (d.mode === "turn") {
+      input.yaw += dx * TURN;
+      input.pitch = Math.max(-0.35, Math.min(0.4, input.pitch + dy * TILT));
+      input.yawVel = Math.max(-6, Math.min(6, input.yawVel * 0.4 + ((dx * TURN) / dt) * 0.6));
+    } else {
+      // Dragging a sleeve: outward / inward with the horizontal move, forward / back with the vertical one.
+      input.grabOut = Math.max(-0.35, Math.min(1.1, input.grabOut + dx * SLEEVE * input.grab));
+      input.grabFwd = Math.max(-0.9, Math.min(0.9, input.grabFwd - dy * SLEEVE));
+    }
+    d.x = e.clientX;
+    d.y = e.clientY;
+    d.t = e.timeStamp;
+    firstTouch();
+  };
+  const onPointerEnd = (e: PointerEvent<HTMLDivElement>) => {
+    const input = inputRef.current;
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    drag.current = null;
+    input.grab = 0;
+    // A drag that stopped before release should not fling.
+    if (e.timeStamp - d.t > 80) input.yawVel = 0;
+    input.lastInput = performance.now();
+  };
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const input = inputRef.current;
+    const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const [h = 0, v = 0] = step;
+    input.yawVel += h * 2.4;
+    input.pitch = Math.max(-0.35, Math.min(0.4, input.pitch + v * 0.08));
+    firstTouch();
+  };
 
   return (
     <div className="tph-stage" ref={stageRef}>
       <div className="tph-glow" aria-hidden="true" />
       {mode === "3d" && (
-        <div className="hero-canvas" data-ready={ready} ref={canvasRef} aria-hidden="true">
+        <div
+          className="hero-canvas tph-ghost"
+          data-ready={ready}
+          role="img"
+          tabIndex={0}
+          aria-label="3D hoodie. Drag it, or use the arrow keys, to turn it."
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+          onKeyDown={onKeyDown}
+        >
           <CanvasBoundary onError={onError}>
-            <HeroCanvas active={active} onReady={onReady} labelRef={labelRef} />
+            <GhostHoodie input={inputRef} active={active} reduced={reduced} onReady={onReady} />
           </CanvasBoundary>
         </div>
       )}
-      {(mode === "svg" || mode === "static") && <HeroSvg animated={mode === "svg"} />}
+      {(mode === "svg" || mode === "static") && <HeroSvg animated={false} />}
       {(mode === "pending" || mode === "3d") && (
         <div className="hero-poster br" data-hidden={ready} aria-hidden="true">
           <div>
@@ -156,13 +179,10 @@ export function ProcessHoodie() {
           </div>
         </div>
       )}
-      {mode !== "static" && (
-        <div className="tph-meter br" ref={meterRef}>
-          <span className="now" ref={nowRef} aria-hidden="true">
-            01 Pattern &amp; cut
-          </span>
-          <i aria-hidden="true" />
-        </div>
+      {mode === "3d" && (
+        <p className="tph-hint br" data-hidden={touched || !ready} aria-hidden="true">
+          Drag to turn it
+        </p>
       )}
     </div>
   );

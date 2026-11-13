@@ -118,34 +118,36 @@
   height: 100%;
   max-height: none;
 }
-.tph-meter {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: var(--mute-inv);
+/* The draggable ghost hoodie: horizontal drags turn it, vertical swipes still scroll the page. */
+.tph-ghost {
+  touch-action: pan-y;
+  cursor: grab;
+  outline: none;
+}
+/* The loading poster sits over the canvas; it must not catch the drag. */
+.tph-stage .hero-poster {
   pointer-events: none;
 }
-.tph-meter .now {
-  color: var(--paper);
-  white-space: nowrap;
+.tph-ghost:active {
+  cursor: grabbing;
 }
-.tph-meter i {
-  position: relative;
-  flex: 1;
-  height: 2px;
-  background: rgba(244, 242, 238, 0.18);
+.tph-ghost:focus-visible {
+  outline: 2px dashed var(--yellow);
+  outline-offset: -6px;
 }
-.tph-meter i::after {
-  content: "";
+.tph-hint {
   position: absolute;
-  inset: 0;
-  background: var(--yellow);
-  transform: scaleX(var(--p, 0));
-  transform-origin: 0 50%;
+  left: 50%;
+  bottom: 2%;
+  margin: 0;
+  transform: translateX(-50%);
+  color: var(--mute-inv);
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.6s;
+}
+.tph-hint[data-hidden="true"] {
+  opacity: 0;
 }
 
 /* ---------- panels: the builder reads best on paper, so the band below the hero is paper, edge to edge ---------- */

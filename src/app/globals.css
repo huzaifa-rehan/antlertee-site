@@ -291,6 +291,41 @@ html.seen .loader {
   -webkit-mask: url(/brand/logo-lockup-mask.png) center / contain no-repeat;
   mask: url(/brand/logo-lockup-mask.png) center / contain no-repeat;
 }
+.wm-logo {
+  transition: width 0.3s var(--ease-out);
+}
+.nav {
+  transition:
+    color 0.3s,
+    padding 0.3s var(--ease-out);
+}
+.nav[data-compact="1"] {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+/* Once the page has scrolled, a soft band in the colour of the section behind keeps text from running under the logo and nav. */
+.nav::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -18px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(var(--ink) 62%, transparent);
+  transition: opacity 0.3s;
+}
+.nav[data-compact="1"]::before {
+  opacity: 1;
+}
+.nav[data-theme="light"]::before {
+  background: linear-gradient(var(--paper) 62%, transparent);
+}
+.nav[data-theme="yellow"]::before {
+  background: linear-gradient(var(--yellow) 62%, transparent);
+}
+.nav[data-compact="1"] .wm-logo {
+  width: clamp(48px, 4vw, 62px);
+}
 .wm small {
   display: block;
   font: 500 10px/1.4 var(--font-body);
@@ -670,19 +705,23 @@ html.seen .loader {
 
 /* ---------- statement + marquee ---------- */
 .statement {
-  padding: 22vh var(--pad);
+  padding: clamp(96px, 16vh, 180px) var(--pad);
   max-width: 1400px;
 }
 .statement p {
   font: 800 clamp(30px, 4.6vw, 76px) / 1.04 var(--font-display);
   letter-spacing: var(--track);
 }
+/* The small label line under the statement (the .statement p rule above would otherwise make it headline-sized). */
 .statement .meta {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 28px;
-  margin-top: 40px;
+  margin-top: clamp(24px, 4vh, 40px);
   color: var(--mute);
+  font: 600 13px / 1.3 var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .marquee {
   background: var(--yellow);
@@ -2521,6 +2560,9 @@ main:focus {
   margin: 0;
   padding: 0;
 }
+.cw-spot-wrap .h-section {
+  margin-bottom: clamp(28px, 5vh, 56px);
+}
 .cw-spot {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr);
@@ -2634,16 +2676,16 @@ main:focus {
 }
 .cw-logos {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: clamp(10px, 1.2vw, 16px);
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: clamp(8px, 0.9vw, 12px);
   margin-top: clamp(24px, 4vh, 40px);
 }
 .cw-logos li {
   display: grid;
   place-items: center;
-  aspect-ratio: 3 / 2;
-  padding: clamp(12px, 1.6vw, 20px);
-  border-radius: 14px;
+  aspect-ratio: 1 / 1;
+  padding: clamp(8px, 1vw, 14px);
+  border-radius: 12px;
   overflow: hidden;
 }
 .cw-logos img {
@@ -2656,7 +2698,7 @@ main:focus {
 }
 @media (max-width: 1099.98px) {
   .cw-logos {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 @media (max-width: 859.98px) {
@@ -2691,7 +2733,7 @@ main:focus {
     object-fit: cover;
   }
   .cw-logos {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

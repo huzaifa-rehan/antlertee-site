@@ -42,6 +42,8 @@ export function SiteNav() {
         }
       }
       el.dataset.theme = theme;
+      // Once the page has scrolled the big logo shrinks, so it covers less of the section under it.
+      el.dataset.compact = window.scrollY > 48 ? "1" : "0";
     };
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(update);
