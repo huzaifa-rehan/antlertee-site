@@ -29,11 +29,14 @@ export const contact = {
   email: "antlerteecreativestudios@gmail.com",
   instagram: "https://www.instagram.com/antlerteecreativestudios/",
   instagramHandle: "@antlerteecreativestudios",
+  facebook: "https://www.facebook.com/profile.php?id=61557809762721",
+  linkedin: "https://www.linkedin.com/company/antlertee-creative-studios/posts/?feedView=all",
 } as const;
 
 export const facts = {
-  // TODO confirm with client: "500+ clothing brands over the last 6 years" (Instagram carousel, Jun 2026).
-  brandsServed: "500+",
+  // 200+ clothing brands served, per the client's own site prototype (reviewed 2026-11-13). The Instagram carousel (Jun 2026) said 500+;
+  // the owner chose 200+.
+  brandsServed: "200+",
   // TODO confirm with client: "6 years" (2026 carousel); a 2024 reel celebrated "5 years in business". Founding year unknown.
   yearsInBusiness: "6",
   // TODO confirm with client: export markets named in posts (USA, UK, Canada, Kuwait).

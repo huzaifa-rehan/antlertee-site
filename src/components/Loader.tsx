@@ -39,10 +39,10 @@ export function Loader() {
   return (
     <div className="loader" ref={ref} aria-hidden="true">
       <div>
-        <div className="br">( Karachi, PK )</div>
+        <div className="br">Karachi, PK</div>
         {/* eslint-disable-next-line @next/next/no-img-element -- static export, decorative brand mark */}
         <img className="loader-logo" src="/brand/logo-full-ink.png" alt="" width={520} height={1012} />
-        <div className="br">[ Creative Studios ] &nbsp; Loading</div>
+        <div className="br">Creative Studios</div>
       </div>
       <i className="loader-bar" />
     </div>

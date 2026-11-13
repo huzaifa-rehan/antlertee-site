@@ -5,7 +5,7 @@ import { contact, whatsappLink } from "@/content/site";
 export function QuoteCta({ title = "Bring us your tech pack" }: { title?: string }) {
   return (
     <section className="cta-b" data-nav="yellow" aria-labelledby="cta-title">
-      <p className="br">( Start your next drop )</p>
+      <p className="br">Start your next drop</p>
       <h2 id="cta-title">
         {title.split("\n").map((line, i) => (
           <span key={line} style={{ display: "block" }}>

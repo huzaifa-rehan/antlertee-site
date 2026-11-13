@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { Component, useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { yarnToPackPhases as PHASES } from "@/content/copy";
+import { detectHeroMode, type HeroMode } from "@/components/hero/capability";
+import { PACK3D, type Pack3DApi } from "@/components/home/HeroPackTimes";
 import { usePrefersReducedMotion } from "@/lib/use-media";
 import "./process.css";
+
+// three + R3F + drei live only in this chunk, fetched after the page has loaded and only for the 3D variant.
+const HeroPack3D = dynamic(() => import("@/components/home/HeroPack3D"), { ssr: false });
 
 /*
  * "Yarn to pack." in the home hero: a time-based (not scroll-driven) loop of a hoodie going through the four
@@ -14,6 +20,11 @@ import "./process.css";
  *
  * The SVG is authored in its finished state, so the server render, no-JS and reduced motion all show the
  * finished garment; the loop starts from that hold, folds and packs, then fades out and begins at "Pattern & cut".
+ *
+ * 3D variant (capable devices, see hero/capability.ts): knit, cut and stitch stay 2D, then at the end of stitching
+ * the drawing hands over to the 3D hoodie (home/HeroPack3D.tsx, timings in home/HeroPackTimes.ts), which is washed,
+ * printed, folded, multiplied and boxed in 3D. Each loop decides before the handover whether the 3D scene is ready;
+ * if not (still loading, or it failed), that loop plays the 2D sequence below, which stays the full fallback.
  */
 
 // Times below run on the garment clock `t`; the knitting intro plays for KNIT seconds before it (t < 0).
@@ -86,11 +97,29 @@ const seg = (t: number, a: number, b: number) => clamp01((t - a) / (b - a));
 const ease = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
 const easeOut = (x: number) => 1 - (1 - x) ** 3;
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
-const phaseAt = (t: number) => {
-  let i = PHASE_AT.length - 1;
-  while (i > 0 && t < (PHASE_AT[i] ?? 0)) i--;
+const phaseAt = (t: number, at: readonly number[]) => {
+  let i = at.length - 1;
+  while (i > 0 && t < (at[i] ?? 0)) i--;
   return i;
 };
+const subscribeNever = () => () => {};
+
+class CanvasBoundary extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(error: unknown) {
+    console.warn("3D hoodie failed to start; the hero keeps the 2D animation.", error);
+    this.props.onError();
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
+/** Debug only (`?ytdebug`): seek the loop to a garment time, paused, e.g. `__yarnToPack.seek(15.2)`. */
+type DebugWindow = Window & { __yarnToPack?: { seek: (t: number, three?: boolean) => void } };
 
 type Pt = { x: number; y: number };
 
@@ -191,6 +220,14 @@ function FoldRig() {
 
 export function YarnToPack() {
   const reduce = usePrefersReducedMotion();
+  const detected = useSyncExternalStore<HeroMode>(subscribeNever, detectHeroMode, () => "pending");
+  const [failed, setFailed] = useState(false);
+  const still = reduce || detected === "static";
+  const want3d = !still && !failed && detected === "3d";
+  const [load3d, setLoad3d] = useState(false);
+  const ready3d = useRef(false);
+  const apiRef = useRef<Pack3DApi | null>(null);
+  const threeRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
   const syncRef = useRef<() => void>(() => {});
@@ -201,6 +238,34 @@ export function YarnToPack() {
   const barRef = useRef<HTMLElement>(null);
   const nowRef = useRef<HTMLSpanElement>(null);
   const phasesRef = useRef<HTMLOListElement>(null);
+
+  const on3dReady = useCallback(() => {
+    ready3d.current = true;
+  }, []);
+  const on3dError = useCallback(() => {
+    ready3d.current = false;
+    apiRef.current = null;
+    setFailed(true);
+  }, []);
+
+  // Fetch the 3D scene only once the page has loaded and the main thread is idle, so it never competes with the
+  // headline (LCP). The 2D knit, cut and stitch scenes play while it loads.
+  useEffect(() => {
+    if (!want3d) return;
+    let idle = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const start = () => {
+      if (typeof window.requestIdleCallback === "function") idle = window.requestIdleCallback(() => setLoad3d(true), { timeout: 2500 });
+      else timer = setTimeout(() => setLoad3d(true), 600);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => {
+      window.removeEventListener("load", start);
+      if (idle) window.cancelIdleCallback(idle);
+      clearTimeout(timer);
+    };
+  }, [want3d]);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -274,11 +339,30 @@ export function YarnToPack() {
       el.setAttribute(name, value);
     };
     let lastPhase = -2;
+    let three = false; // this loop hands over to the 3D hoodie
 
     const apply = (tt: number) => {
       const t = tt - KNIT; // garment clock
+      // Each loop decides before the handover whether the 3D scene is ready to take over.
+      if (t < PACK3D.decide) three = ready3d.current;
+      if (three && !apiRef.current) three = false;
+      const [handA, handB] = PACK3D.handover;
+      // On the 3D path the 2D garment's own clock stops at the handover and the 2D fold & pack never starts.
+      const g = three ? Math.min(t, handA) : t;
+      const tp = three ? -1 : t;
       // Fade the whole scene out at the end of the loop and back in at the start.
-      style(stage, "opacity", String(r3(Math.min(seg(tt, 0, 0.5), 1 - seg(t, DONE, D)))));
+      const fade = Math.min(seg(tt, 0, 0.5), 1 - seg(t, DONE, D));
+      style(stage, "opacity", String(r3(fade)));
+
+      // The 3D hoodie: crossfades in over the stitched drawing and renders only while it is on screen.
+      const threeBox = threeRef.current ?? undefined; // mounted after hydration, so looked up each frame
+      const threeOpacity = three ? Math.min(seg(t, handA, handA + 0.5), fade) : 0;
+      style(threeBox, "opacity", String(r3(threeOpacity)));
+      const shown = threeOpacity > 0 ? "visible" : "hidden";
+      if (threeBox && shown !== threeBox.style.visibility) {
+        threeBox.style.visibility = shown;
+      }
+      if (three && threeOpacity > 0) apiRef.current?.render(t);
 
       // 0. Knit: the carriage runs along the bed and fabric grows row by row; the machine then lifts away and
       //    the fabric is laid out over the whole table for cutting. Leftover fabric clears as the pieces lift.
@@ -331,40 +415,42 @@ export function YarnToPack() {
       if (n) attr(needle, "transform", `translate(${r3(n.x)} ${r3(n.y)})`);
 
       // 3. Wash: a wash line sweeps down, the fabric dyes grey and the acid pattern comes through.
-      style(sweep, "transform", `translateY(${r3(-160 + 640 * seg(t, 7.3, 8.9))}px)`);
-      style(sweep, "opacity", String(r3(Math.min(seg(t, 7.3, 7.6), 1 - seg(t, 8.6, 8.9)))));
-      style(dyed, "opacity", String(r3(ease(seg(t, 7.5, 8.9)))));
-      style(acid, "opacity", String(r3(0.8 * ease(seg(t, 8.3, 9.7)))));
+      style(sweep, "transform", `translateY(${r3(-160 + 640 * seg(g, 7.3, 8.9))}px)`);
+      style(sweep, "opacity", String(r3(Math.min(seg(g, 7.3, 7.6), 1 - seg(g, 8.6, 8.9)))));
+      style(dyed, "opacity", String(r3(ease(seg(g, 7.5, 8.9)))));
+      style(acid, "opacity", String(r3(0.8 * ease(seg(g, 8.3, 9.7)))));
 
       // 4. Print & brand: a squeegee pulls the print across, then the woven label comes out of the neck.
-      const pull = ease(seg(t, 10.1, 11));
+      const pull = ease(seg(g, 10.1, 11));
       attr(printClip, "transform", `translate(118 0) scale(${r3(pull)} 1) translate(-118 0)`);
       style(squeegee, "transform", `translateX(${r3(166 * pull)}px)`);
-      style(squeegee, "opacity", String(r3(Math.min(seg(t, 10, 10.2), 1 - seg(t, 10.9, 11.2)))));
-      style(neckTag, "opacity", String(r3(seg(t, 11, 11.3))));
-      const lab = easeOut(seg(t, 11.2, 12.1));
-      style(labelRef.current ?? undefined, "opacity", String(r3(Math.min(lab * 1.4, 1 - seg(t, 12.9, 13.3)))));
+      style(squeegee, "opacity", String(r3(Math.min(seg(g, 10, 10.2), 1 - seg(g, 10.9, 11.2)))));
+      style(neckTag, "opacity", String(r3(seg(g, 11, 11.3))));
+      const L = PACK3D.label;
+      const lab = three ? easeOut(seg(t, L.inAt, L.inEnd)) : easeOut(seg(t, 11.2, 12.1));
+      const labOut = three ? seg(t, L.outAt, L.outEnd) : seg(t, 12.9, 13.3);
+      style(labelRef.current ?? undefined, "opacity", String(r3(Math.min(lab * 1.4, 1 - labOut))));
       style(labelRef.current ?? undefined, "transform", `translate3d(${r3(-30 * (1 - lab))}%, ${r3(16 * (1 - lab))}%, 0) scale(${r3(0.5 + 0.5 * lab)})`);
 
       // 5. Fold & pack: the sleeves fold in and the body folds in half, copies stack up into a bulk run,
       //    the stack drops into a box, the lid closes, it is taped and stamped with the label.
       // Hand over from the garment to the identical-looking fold rig.
-      style(garment, "opacity", String(r3(1 - seg(t, 12.88, 13))));
+      style(garment, "opacity", String(r3(three ? 1 - seg(t, handA + 0.05, handB) : 1 - seg(t, 12.88, 13))));
       // Sleeves flip back around the side seams (x 100 / 300), darkening as they pass edge-on.
       sleeves.forEach((g, i) => {
         const a = 13 + i * 0.12;
-        const k = 1 - 2 * ease(seg(t, a, a + 0.5));
+        const k = 1 - 2 * ease(seg(tp, a, a + 0.5));
         const pivot = i === 0 ? 100 : 300;
         attr(g, "transform", `translate(${pivot} 0) scale(${r3(k)} 1) translate(${-pivot} 0)`);
         style(shades[i], "opacity", String(r3(0.55 * (1 - Math.abs(k)))));
       });
       // The lower half flips up behind the top half.
-      const kf = 1 - 2 * ease(seg(t, 13.7, 14.3));
+      const kf = 1 - 2 * ease(seg(tp, 13.7, 14.3));
       attr(rigFlap, "transform", `translate(0 ${FOLD_Y}) scale(1 ${r3(kf)}) translate(0 ${-FOLD_Y})`);
       // The folded hoodie shrinks, three copies slide out into a row of four, then they settle into a stack.
-      const shrink = ease(seg(t, 14.4, 15));
-      const spread = ease(seg(t, 15, 15.7));
-      const settle = ease(seg(t, 15.9, 16.5));
+      const shrink = ease(seg(tp, 14.4, 15));
+      const spread = ease(seg(tp, 15, 15.7));
+      const settle = ease(seg(tp, 15.9, 16.5));
       copies.forEach((c, i) => {
         const original = i === copies.length - 1;
         const from = original ? { x: START.x, y: START.y + (MID.y - START.y) * shrink } : MID;
@@ -373,7 +459,7 @@ export function YarnToPack() {
         const pile = PILE[i] ?? MID;
         const x = from.x + (rowX - from.x) * spread;
         const y = from.y + (MID.y - from.y) * spread;
-        style(c, "opacity", String(r3(original ? seg(t, 12.8, 12.9) : seg(t, 15, 15.15))));
+        style(c, "opacity", String(r3(original ? seg(tp, 12.8, 12.9) : seg(tp, 15, 15.15))));
         attr(
           c,
           "transform",
@@ -381,22 +467,22 @@ export function YarnToPack() {
         );
       });
       // Box, drop, lid, tape, label.
-      const boxIn = easeOut(seg(t, 16.3, 16.8));
+      const boxIn = easeOut(seg(tp, 16.3, 16.8));
       boxParts.forEach((el) => {
         style(el, "opacity", String(r3(boxIn)));
         attr(el, "transform", `translate(0 ${r3(40 * (1 - boxIn))})`);
       });
-      attr(stack, "transform", `translate(0 ${r3(STACK_DROP * ease(seg(t, 16.8, 17.4)))})`);
-      attr(flap, "transform", `translate(0 290) scale(1 ${r3(1 - ease(seg(t, 17.5, 18)))}) translate(0 -290)`);
-      style(lid, "opacity", String(r3(seg(t, 17.85, 18))));
-      attr(tape, "transform", `translate(0 282) scale(1 ${r3(ease(seg(t, 18, 18.3)))}) translate(0 -282)`);
-      const stamp = seg(t, 18.4, 18.75);
+      attr(stack, "transform", `translate(0 ${r3(STACK_DROP * ease(seg(tp, 16.8, 17.4)))})`);
+      attr(flap, "transform", `translate(0 290) scale(1 ${r3(1 - ease(seg(tp, 17.5, 18)))}) translate(0 -290)`);
+      style(lid, "opacity", String(r3(seg(tp, 17.85, 18))));
+      attr(tape, "transform", `translate(0 282) scale(1 ${r3(ease(seg(tp, 18, 18.3)))}) translate(0 -282)`);
+      const stamp = seg(tp, 18.4, 18.75);
       style(boxLabel, "opacity", String(r3(stamp)));
       attr(boxLabel, "transform", `translate(240 372) scale(${r3(1.35 - 0.35 * easeOut(stamp))}) translate(-240 -372)`);
 
       // Meter and phase list.
       style(barRef.current ?? undefined, "transform", `scaleX(${r3(seg(tt, 0, KNIT + DONE))})`);
-      const ph = t < 0 ? 0 : 1 + phaseAt(t);
+      const ph = t < 0 ? 0 : 1 + phaseAt(t, three ? PACK3D.phases : PHASE_AT);
       if (ph !== lastPhase) {
         lastPhase = ph;
         items.forEach((li, k) => {
@@ -409,7 +495,7 @@ export function YarnToPack() {
       }
     };
 
-    if (reduce) {
+    if (still) {
       apply(KNIT + FINAL);
       style(barRef.current ?? undefined, "transform", "scaleX(1)");
       items.forEach((li) => li.setAttribute("data-on", "true"));
@@ -442,6 +528,20 @@ export function YarnToPack() {
     syncRef.current = sync;
     apply(t);
 
+    const debug = new URLSearchParams(window.location.search).has("ytdebug");
+    if (debug) {
+      (window as DebugWindow).__yarnToPack = {
+        seek: (to: number, use3d = true) => {
+          pausedRef.current = true;
+          setPaused(true);
+          sync();
+          t = KNIT + to;
+          three = use3d && ready3d.current;
+          apply(t);
+        },
+      };
+    }
+
     const io = new IntersectionObserver(
       ([entry]) => {
         inView = Boolean(entry?.isIntersecting);
@@ -456,8 +556,9 @@ export function YarnToPack() {
       document.removeEventListener("visibilitychange", sync);
       cancelAnimationFrame(raf);
       syncRef.current = () => {};
+      if (debug) delete (window as DebugWindow).__yarnToPack;
     };
-  }, [reduce]);
+  }, [still]);
 
   const toggle = () => {
     pausedRef.current = !pausedRef.current;
@@ -620,24 +721,34 @@ export function YarnToPack() {
             </g>
           </svg>
 
+          {want3d && (
+            <div className="pr-3d" ref={threeRef} aria-hidden="true">
+              {load3d && (
+                <CanvasBoundary onError={on3dError}>
+                  <HeroPack3D apiRef={apiRef} onReady={on3dReady} />
+                </CanvasBoundary>
+              )}
+            </div>
+          )}
+
           <div className="pr-label" ref={labelRef} aria-hidden="true">
             <i className="pr-label-line" />
             <div className="pr-label-card">
               {/* eslint-disable-next-line @next/next/no-img-element -- static export, decorative */}
               <img src="/brand/logo-full-white.png" alt="" width={520} height={1012} />
-              <small>( Your label )</small>
+              <small>Your label</small>
             </div>
           </div>
         </div>
 
         <figcaption className="pr-meter">
           <span className="pr-now br" ref={nowRef} aria-hidden="true">
-            {reduce ? "Finished" : `${PHASES[4]?.n} ${PHASES[4]?.title}`}
+            {still ? "Finished" : `${PHASES[4]?.n} ${PHASES[4]?.title}`}
           </span>
           <span className="pr-line" aria-hidden="true">
             <i ref={barRef} />
           </span>
-          {!reduce && (
+          {!still && (
             <button type="button" className="pr-toggle" onClick={toggle} aria-label={paused ? "Play the yarn to pack animation" : "Pause the yarn to pack animation"}>
               <span className={paused ? "pr-ico-play" : "pr-ico-pause"} aria-hidden="true" />
               <span>{paused ? "Play" : "Pause"}</span>

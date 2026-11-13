@@ -1,9 +1,6 @@
-/* Process page hero: the headline and the build / send choice beside the pinned 3D hoodie (.tph-), plus the page's
+/* Process page hero: the headline and the build / send choice beside the 3D hoodie (.tph-), plus the page's
    section heads (.pg-). Loaded with TechPackSection on /process/ only. Uses the tokens from globals.css.
-
-   The hero is a tall "zone" with a sticky, one-screen "pin" inside it: while you scroll through the zone the hoodie
-   stays put and goes from a transparent ghost to the grey acid-washed garment (ProcessHoodie.tsx reads the zone's
-   scroll position). Plain CSS sticky, no script-built wrapper. */
+   The hoodie plays by itself (ProcessHoodie.tsx); the hero is one screen tall and scrolls normally. */
 
 .tph {
   background: var(--ink);
@@ -11,16 +8,13 @@
 }
 .tph-zone {
   position: relative;
-  height: 250vh;
-  height: 250svh;
-}
-.tph-pin {
-  position: sticky;
-  top: 0;
   height: 100vh;
   height: 100svh;
-  min-height: 560px;
+  min-height: 600px;
   overflow: hidden;
+}
+.tph-pin {
+  height: 100%;
 }
 .tph-in {
   display: grid;
@@ -145,6 +139,28 @@
   height: 2px;
   background: rgba(244, 242, 238, 0.18);
 }
+.tph-replay {
+  flex: none;
+  min-height: 44px;
+  margin: -12px 0;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.tph-replay:disabled {
+  opacity: 0.4;
+  cursor: default;
+  text-decoration-color: transparent;
+}
 .tph-meter i::after {
   content: "";
   position: absolute;
@@ -244,30 +260,8 @@
     /* The 3D garment sizes itself to this box: it must never collapse to 0 on small screens. */
     min-height: 30svh;
   }
-  .tph-meter .hint {
-    display: none;
-  }
-  .tph-panels-in {
+    .tph-panels-in {
     padding-top: 28px;
-  }
-}
-
-/* Reduced motion: no pin, the finished garment, then the panels. */
-@media (prefers-reduced-motion: reduce) {
-  .tph-zone {
-    height: auto;
-  }
-  .tph-pin {
-    position: relative;
-    height: auto;
-    min-height: 0;
-  }
-  .tph-in {
-    height: auto;
-  }
-  .tph-stage {
-    height: 52svh;
-    min-height: 320px;
   }
 }
 

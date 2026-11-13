@@ -63,7 +63,7 @@ const rows: { label: string; body: React.ReactNode }[] = [
 export default function CreditsPage() {
   return (
     <section className="page-hero" data-nav="light" aria-labelledby="credits-title" style={{ paddingBottom: "14vh" }}>
-      <p className="br kicker">( Credits )</p>
+      <p className="br kicker">Credits</p>
       <h1 id="credits-title" className="h-page" style={{ marginTop: 18 }}>
         Credits<span className="dot">.</span>
       </h1>

@@ -8,21 +8,15 @@ export function HomeHero() {
     <section className="pr-hero home-hero" data-nav="dark" aria-labelledby="hero-title">
       <div className="pr-hero-in">
         <div className="pr-copy">
-          <p className="br kicker">( Private-label streetwear )</p>
+          <p className="eyebrow">
+            {hero.label[0]}, {hero.label[1]}
+          </p>
           <h1 id="hero-title" className="h-page pr-title home-title">
             Yarn to
             <br />
             pack<span className="dot">.</span>
           </h1>
           <p className="pr-lead">{hero.lede}</p>
-          <p className="home-label br">
-            {hero.label[0]} &nbsp; {hero.label[1]}
-          </p>
-          <p className="home-tags br">
-            {hero.tags.map((t) => (
-              <span key={t}>{t}</span>
-            ))}
-          </p>
           <div className="pr-ctas">
             <Link className="pill solid lg" href="/process/#tech-pack">
               Start your tech pack
@@ -31,6 +25,11 @@ export function HomeHero() {
               See the rack
             </Link>
           </div>
+          <ul className="hero-chips" aria-label="Key facts">
+            {hero.tags.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
         </div>
         <YarnToPack />
       </div>

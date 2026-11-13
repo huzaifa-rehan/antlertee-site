@@ -857,7 +857,7 @@ html.seen .loader {
   position: absolute;
   left: 0;
   top: 0;
-  width: clamp(150px, 19vw, 300px);
+  width: clamp(190px, 25vw, 390px);
   aspect-ratio: 3/4;
   border-radius: 22px;
   overflow: hidden;
@@ -959,6 +959,9 @@ html.seen .loader {
     grid-template-columns: 1fr;
     grid-template-rows: 52% 48%;
   }
+  .o-item {
+    width: clamp(168px, 46vw, 230px);
+  }
   .o-copy {
     padding: 0 var(--pad);
     align-self: start;
@@ -993,8 +996,8 @@ html.seen .loader {
   --gw: 176px; /* garment width; keep HANGER_SIZES in Wardrobe.tsx in step */
   --frame: 18px;
   --gap: 12px;
-  --grain-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='200'%3E%3Cfilter id='g' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004 0.24' numOctaves='4' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.05 0 0 0 0 0.02 2.2 0 0 0 -0.95'/%3E%3C/filter%3E%3Crect width='640' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
-  --grain-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='640'%3E%3Cfilter id='g' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.24 0.004' numOctaves='4' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.05 0 0 0 0 0.02 2.2 0 0 0 -0.95'/%3E%3C/filter%3E%3Crect width='200' height='640' filter='url(%23g)'/%3E%3C/svg%3E");
+  --grain-h: url("/img/grain-h.png");
+  --grain-v: url("/img/grain-v.png");
   --brass: linear-gradient(180deg, #f7e6b8 0%, #dcb96f 42%, #b48b44 78%, #9c763a 100%);
   position: relative;
   max-width: 1480px;
@@ -1807,13 +1810,75 @@ html.seen .loader {
 .footer {
   background: var(--ink);
   color: var(--mute-inv);
-  padding: 56px var(--pad) 28px;
+  padding: clamp(64px, 12vh, 120px) var(--pad) 28px;
 }
-.footer-top {
+.ft-in {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+.ft-top {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
-  gap: 32px;
-  padding-bottom: 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: 32px clamp(32px, 6vw, 96px);
+  align-items: center;
+  padding-bottom: clamp(48px, 9vh, 96px);
+  border-bottom: 1px solid var(--line-inv);
+}
+.ft-title {
+  font: 900 clamp(48px, 8vw, 112px) / 0.9 var(--font-display);
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.ft-lede {
+  margin-top: 24px;
+  max-width: 44ch;
+  line-height: 1.55;
+  color: var(--paper);
+}
+.ft-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 8px 8px 24px;
+  border-radius: 99px;
+  background: rgba(244, 242, 238, 0.07);
+  min-width: 0;
+}
+.ft-pill-mail {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mute-inv);
+  text-decoration: none;
+}
+.ft-pill-mail:hover {
+  color: var(--paper);
+}
+.ft-pill-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 99px;
+  background: var(--yellow);
+  color: var(--ink);
+  font: 700 15px / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+.ft-pill-btn:hover {
+  filter: brightness(1.06);
+}
+.ft-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
+  gap: 40px clamp(24px, 4vw, 64px);
+  padding: clamp(40px, 7vh, 72px) 0;
   border-bottom: 1px solid var(--line-inv);
 }
 .footer .wm {
@@ -1821,13 +1886,45 @@ html.seen .loader {
   color: var(--paper);
 }
 .footer .wm-logo {
-  width: clamp(110px, 12vw, 170px);
+  width: clamp(96px, 9vw, 130px);
 }
-.footer h2 {
-  font: 600 11px/1 var(--font-body);
-  letter-spacing: 0.06em;
+.ft-about {
+  margin-top: 22px;
+  max-width: 34ch;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.footer .ft-social {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+.footer .ft-social a {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 1px solid var(--line-inv);
+  border-radius: 50%;
+  color: var(--paper);
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+.footer .ft-social a:hover {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--ink);
+  text-decoration: none;
+}
+.footer .ft-h {
+  margin-bottom: 18px;
+  font: 800 clamp(20px, 1.9vw, 26px) / 1 var(--font-display);
+  letter-spacing: -0.02em;
   text-transform: uppercase;
-  margin-bottom: 14px;
+  color: var(--paper);
 }
 .footer ul {
   list-style: none;
@@ -1845,24 +1942,81 @@ html.seen .loader {
   text-decoration-color: var(--yellow);
   text-underline-offset: 4px;
 }
-.footer-bottom {
+.footer .ft-links a {
+  font: 600 15px / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.footer .ft-office {
+  gap: 14px;
+}
+.ft-office li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.ft-office svg {
+  margin-top: 3px;
+  color: var(--mute-inv);
+}
+.ft-office b {
+  display: block;
+  font-weight: 600;
+  color: var(--paper);
+}
+.footer .ft-office a {
+  min-height: 0;
+  display: inline;
+  overflow-wrap: anywhere;
+}
+.ft-bottom {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px 24px;
-  padding-top: 22px;
+  padding-top: 26px;
   font-size: 12.5px;
   line-height: 1.5;
 }
-.footer-bottom a {
+.ft-tag {
+  font: 500 12px / 1.5 var(--font-body);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.ft-bottom a {
   color: var(--paper);
 }
 @media (max-width: 859.98px) {
-  .footer-top {
-    grid-template-columns: 1fr 1fr;
+  .ft-top {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .footer-top > :first-child {
+  .ft-cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ft-brand {
     grid-column: 1 / -1;
+  }
+  .ft-cols > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 480px) {
+  .ft-pill {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 14px;
+    border-radius: 24px;
+  }
+  .ft-pill-mail {
+    padding: 4px 8px;
+    text-align: center;
+  }
+  .ft-pill-btn {
+    justify-content: center;
   }
 }
 
@@ -1891,11 +2045,64 @@ html.seen .loader {
   background: var(--ink);
   color: var(--paper);
 }
-.kicker {
-  color: var(--mute);
+/* Small uppercase label above a heading: readable on both backgrounds, with a short rule instead of brackets. */
+.kicker,
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font: 700 13px / 1.3 var(--font-body);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
 }
-.dark .kicker {
-  color: var(--mute-inv);
+.kicker::before,
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.dark .kicker,
+.eyebrow {
+  color: var(--paper);
+}
+.dark .kicker::before,
+.eyebrow::before {
+  background: var(--yellow);
+}
+.kicker a {
+  color: inherit;
+  text-decoration: none;
+}
+/* Hero fact chips (MOQ, shipping): quiet outlined pills under the buttons. */
+.hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.hero-chips li {
+  padding: 8px 14px;
+  border: 1px solid var(--line-inv);
+  border-radius: 99px;
+  font: 600 13px / 1 var(--font-body);
+  letter-spacing: 0.02em;
+  color: var(--paper);
+}
+@media (max-width: 859.98px) {
+  .hero-chips {
+    margin-top: 14px;
+    gap: 6px;
+  }
+  .hero-chips li {
+    padding: 7px 11px;
+    font-size: 12px;
+  }
 }
 .prose-lg p {
   font-size: clamp(17px, 1.5vw, 21px);
@@ -2103,7 +2310,7 @@ select.input {
 }
 /* Footer links: 44px tall tap targets (the list gap is folded into the link height). */
 .footer ul a,
-.footer-bottom a {
+.ft-bottom a {
   display: inline-flex;
   align-items: center;
   min-width: 44px;
@@ -2292,4 +2499,225 @@ main:focus {
   .blog-media img {
     transition: none;
   }
+}
+
+/* ---------- home: client work (Spotify collab, Valour pieces, brands) ---------- */
+.cw {
+  background: var(--paper);
+  color: var(--ink);
+  padding: 14vh var(--pad) 12vh;
+  display: grid;
+  gap: clamp(72px, 14vh, 140px);
+}
+.cw ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cw-spot {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: center;
+}
+.cw-spot-copy p:not(.kicker) {
+  max-width: 44ch;
+  color: #4f4a44;
+  line-height: 1.6;
+}
+.cw-sub {
+  margin: 28px 0 10px;
+  font: 800 clamp(22px, 2.2vw, 30px) / 1.05 var(--font-display);
+  letter-spacing: -0.03em;
+}
+.cw-spot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.4vw, 20px);
+  align-items: end;
+}
+.cw-spot-grid picture,
+.cw-pieces picture {
+  display: block;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--paper-2);
+}
+.cw-spot-grid img,
+.cw-pieces img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* Antlertee x Spotify lockup */
+.cl {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.6vw, 22px);
+  margin-top: 18px;
+  padding: clamp(16px, 2vw, 26px) clamp(18px, 2.4vw, 32px);
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.cl-ant {
+  display: block;
+  width: clamp(64px, 6.4vw, 92px);
+  aspect-ratio: 520 / 518;
+  background: currentColor;
+  -webkit-mask: url(/brand/logo-lockup-mask.png) center / contain no-repeat;
+  mask: url(/brand/logo-lockup-mask.png) center / contain no-repeat;
+}
+.cl-x {
+  font: 400 clamp(26px, 2.8vw, 40px) / 1 var(--font-body);
+  color: #a9a39b;
+}
+.cl-spot {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  font-size: clamp(18px, 2vw, 28px);
+}
+.cl-glyph {
+  width: 1.9em;
+  height: 1.9em;
+  flex: none;
+}
+.cl-name {
+  font: 800 1em / 1 var(--font-display);
+  letter-spacing: -0.04em;
+  color: #fff;
+}
+.cw-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px 40px;
+  flex-wrap: wrap;
+}
+.cw-head > p {
+  max-width: 44ch;
+  color: #4f4a44;
+  line-height: 1.6;
+}
+.cw-pieces {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 24px);
+  margin-top: clamp(28px, 5vh, 48px);
+}
+.cw-pieces figure {
+  margin: 0;
+}
+.cw-pieces figcaption {
+  padding-top: 12px;
+}
+.cw-pieces figcaption b {
+  display: block;
+  font: 700 16px / 1.25 var(--font-body);
+}
+.cw-pieces figcaption span {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #5f5a54;
+}
+.cw-logos {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(10px, 1.2vw, 16px);
+  margin-top: clamp(24px, 4vh, 40px);
+}
+.cw-logos li {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 2;
+  padding: clamp(12px, 1.6vw, 20px);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.cw-logos img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+@media (max-width: 1099.98px) {
+  .cw-logos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 859.98px) {
+  .cw {
+    padding: 12vh var(--pad) 10vh;
+  }
+  .cw-spot {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cw-pieces {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cw-pieces figcaption b {
+    font-size: 15px;
+  }
+  .cw-pieces figcaption span {
+    font-size: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .cw-spot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cw-spot-grid li:last-child {
+    grid-column: 1 / -1;
+  }
+  .cw-spot-grid li:last-child picture {
+    aspect-ratio: 16 / 10;
+  }
+  .cw-spot-grid li:last-child img {
+    height: 100%;
+    object-fit: cover;
+  }
+  .cw-logos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- process page: stages inside bulk production ---------- */
+.pg-sub {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  max-width: 52ch;
+  border-top: 1px solid rgba(244, 242, 238, 0.14);
+}
+.pg-sub li {
+  display: grid;
+  grid-template-columns: 3.4em minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(244, 242, 238, 0.14);
+}
+.pg-sub b {
+  font: 600 13px / 1.6 var(--font-body);
+  letter-spacing: 0.04em;
+  color: var(--yellow);
+}
+.pg-sub strong {
+  display: block;
+  font: 700 17px / 1.25 var(--font-body);
+  color: var(--paper);
+}
+.pg-sub span {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #c9c4bb;
+}
+.pg-sub strong + * {
+  margin-top: 2px;
 }

@@ -45,7 +45,7 @@ export function TechPackSheet({ data, printedOn }: { data: TechPack; printedOn: 
           {/* eslint-disable-next-line @next/next/no-img-element -- static export; printed logo */}
           <img src="/brand/logo-full-ink.png" alt={brand.name} width={520} height={1012} className="tp-sh-logo" />
           <div className="tp-sh-title">
-            <p className="tp-sh-k">( Tech pack )</p>
+            <p className="tp-sh-k">Tech pack</p>
             <h1>
               {title}
               <span className="tp-sh-dot">.</span>

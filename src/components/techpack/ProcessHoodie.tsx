@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
+import { Component, useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { hero } from "@/content/copy";
 import { detectHeroMode, type HeroMode } from "@/components/hero/capability";
 import { HeroSvg } from "@/components/hero/HeroSvg";
@@ -15,6 +15,9 @@ const HeroCanvas = dynamic(() => import("@/components/hero/HeroCanvas"), { ssr: 
  * garment has settled into its 3/4 turn. The "your brand" label that follows in the home hero is not used here.
  */
 const END = 0.84;
+
+/** Seconds the hoodie takes to go from ghost to the finished wash. It plays once on load and holds the result. */
+const DURATION = 9;
 
 const subscribeNever = () => () => {};
 
@@ -32,23 +35,21 @@ class CanvasBoundary extends Component<{ onError: () => void; children: ReactNod
   }
 }
 
-interface ProcessHoodieProps {
-  /** The tall wrapper the hoodie is pinned inside (CSS sticky): its scroll position drives the animation. */
-  zoneRef: RefObject<HTMLElement | null>;
-}
-
 /**
- * The Process page hero garment: the 3D hoodie goes from a transparent ghost to the grey acid-washed garment as the
- * visitor scrolls through the pinned hero. It reuses the home hero's scene (HeroCanvas) and 2D fallback (HeroSvg),
- * both driven by `heroProgress`. Pinning is plain CSS `position: sticky`, so there is no script-built wrapper for
- * React to trip over when the page unmounts.
+ * The Process page hero garment: the 3D hoodie plays by itself, once, from a transparent ghost to the grey acid-washed
+ * garment, then holds the finished piece (with a Replay button). It reuses the home hero's scene (HeroCanvas) and 2D
+ * fallback (HeroSvg), both driven by `heroProgress`. The clock only runs while the hero is on screen, and reduced
+ * motion gets the finished garment straight away.
  */
-export function ProcessHoodie({ zoneRef }: ProcessHoodieProps) {
+export function ProcessHoodie() {
   const detected = useSyncExternalStore<HeroMode>(subscribeNever, detectHeroMode, () => "pending");
   const [failed, setFailed] = useState(false);
   const mode: HeroMode = failed && detected === "3d" ? "svg" : detected;
   const [ready, setReady] = useState(false);
   const [active, setActive] = useState(true);
+  const activeRef = useRef(true);
+  const [done, setDone] = useState(false);
+  const [run, setRun] = useState(0);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const nowRef = useRef<HTMLSpanElement>(null);
@@ -66,42 +67,54 @@ export function ProcessHoodie({ zoneRef }: ProcessHoodieProps) {
     heroLayout.h = 1;
   }, []);
 
-  // Stop rendering while the hero is offscreen (the stage stays inside the pinned zone, so this is the zone).
+  // Stop rendering (and the clock) while the hero is offscreen.
   useEffect(() => {
-    const zone = zoneRef.current;
-    if (!zone) return;
-    const io = new IntersectionObserver(([entry]) => setActive(Boolean(entry?.isIntersecting)), { rootMargin: "120px" });
-    io.observe(zone);
+    const stage = stageRef.current;
+    if (!stage) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        const on = Boolean(entry?.isIntersecting);
+        activeRef.current = on;
+        setActive(on);
+      },
+      { rootMargin: "120px" },
+    );
+    io.observe(stage);
     return () => io.disconnect();
-  }, [zoneRef]);
+  }, []);
 
-  // Scroll through the pinned zone -> timeline progress. Reduced motion gets the finished garment and no pin.
+  // The clock: 0 -> END over DURATION seconds, once per run. The 3D scene waits until its first frame is on screen.
+  const canPlay = mode === "svg" || (mode === "3d" && ready);
   useEffect(() => {
-    const zone = zoneRef.current;
-    if (!zone || mode === "pending") return;
     if (mode === "static") {
       heroProgress.set(END);
       return;
     }
+    if (!canPlay) {
+      heroProgress.set(0);
+      return;
+    }
+    let elapsed = 0;
+    let last = performance.now();
     let frame = 0;
-    const update = () => {
-      frame = 0;
-      const r = zone.getBoundingClientRect();
-      const run = r.height - window.innerHeight;
-      heroProgress.set(END * clamp01(run > 0 ? -r.top / run : 1));
+    heroProgress.set(0);
+    const tick = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.1);
+      last = now;
+      if (activeRef.current) elapsed += dt;
+      const t = clamp01(elapsed / DURATION);
+      heroProgress.set(END * t);
+      if (t < 1) frame = requestAnimationFrame(tick);
+      else setDone(true);
     };
-    const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-    return () => {
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, [mode, zoneRef]);
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [mode, canPlay, run]);
+
+  const replay = () => {
+    setDone(false);
+    setRun((n) => n + 1);
+  };
 
   // Phase name and meter follow the progress without React re-renders.
   useEffect(() => {
@@ -130,18 +143,20 @@ export function ProcessHoodie({ zoneRef }: ProcessHoodieProps) {
       {(mode === "pending" || mode === "3d") && (
         <div className="hero-poster br" data-hidden={ready} aria-hidden="true">
           <div>
-            ( Threading the needle )
+            Threading the needle
             <i />
           </div>
         </div>
       )}
       {mode !== "static" && (
-        <div className="tph-meter br" ref={meterRef} aria-hidden="true">
-          <span className="now" ref={nowRef}>
+        <div className="tph-meter br" ref={meterRef}>
+          <span className="now" ref={nowRef} aria-hidden="true">
             01 Pattern &amp; cut
           </span>
-          <i />
-          <span className="hint">Scroll</span>
+          <i aria-hidden="true" />
+          <button type="button" className="tph-replay" onClick={replay} disabled={!done}>
+            Replay
+          </button>
         </div>
       )}
     </div>

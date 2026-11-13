@@ -36,7 +36,7 @@ export function WorkGallery() {
             start: "top top",
             end: () => `+=${distance()}`,
             pin: true,
-            scrub: 1,
+            scrub: true, // Lenis already eases the scroll; a second 1s ease on top made the row trail behind
             refreshPriority: 2,
             invalidateOnRefresh: true,
           },

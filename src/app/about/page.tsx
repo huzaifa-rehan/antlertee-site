@@ -1,3 +1,4 @@
+import { ClientWorkAbout } from "@/components/home/ClientWork";
 import { Picture } from "@/components/Picture";
 import { QuoteCta } from "@/components/QuoteCta";
 import { Reveal } from "@/components/Reveal";
@@ -16,7 +17,7 @@ export default function AboutPage() {
   return (
     <>
       <section className="page-hero dark" data-nav="dark" aria-labelledby="about-title">
-        <p className="br kicker">( About ) &nbsp; [ Karachi, PK ]</p>
+        <p className="br kicker">About</p>
         <h1 id="about-title" className="h-page" style={{ marginTop: 18 }}>
           Built from
           <br />
@@ -29,7 +30,7 @@ export default function AboutPage() {
         <div className="grid gap-12 md:grid-cols-[1fr_1.2fr] md:gap-[6vw]">
           <div>
             <h2 id="story-title" className="br kicker">
-              ( The story )
+              The story
             </h2>
             <blockquote className="mt-6">
               <p className="display text-[clamp(34px,4.4vw,68px)] leading-[0.95]">
@@ -91,7 +92,7 @@ export default function AboutPage() {
                 <div className="overflow-hidden rounded-[18px] bg-paper-2">
                   <Picture id={f.image} sizes="(max-width: 768px) 46vw, 31vw" className="aspect-[3/4] w-full object-cover" />
                 </div>
-                <figcaption className="br mt-3 text-mute">( {f.caption} )</figcaption>
+                <figcaption className="mt-3 text-[14px] text-mute">{f.caption}</figcaption>
               </figure>
             </Reveal>
           ))}
@@ -110,6 +111,8 @@ export default function AboutPage() {
           ))}
         </dl>
       </section>
+
+      <ClientWorkAbout />
 
       <QuoteCta title={"Let's build\nyour line"} />
     </>

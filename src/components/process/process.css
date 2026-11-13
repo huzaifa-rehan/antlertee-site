@@ -60,6 +60,17 @@
   height: 100%;
   overflow: visible;
 }
+/* The 3D hoodie (home hero, capable devices): covers the SVG viewBox exactly, shown only from the handover. */
+.pr-3d {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.pr-3d canvas {
+  display: block;
+}
 .pr-mat path {
   fill: none;
   stroke: rgba(244, 242, 238, 0.09);

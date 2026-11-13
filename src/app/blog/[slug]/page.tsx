@@ -81,14 +81,14 @@ export default async function PostPage({ params }: Params) {
       <article aria-labelledby="post-title">
         <header className="page-hero dark post-hero" data-nav="dark">
           <p className="br kicker">
-            <Link href="/blog/">( Blog )</Link> &nbsp; [ {post.tag} ]
+            <Link href="/blog/">Blog</Link> &nbsp;/&nbsp; {post.tag}
           </p>
           <h1 id="post-title" className="h-page post-title">
             {post.title}
           </h1>
           <p className="lead">{post.summary}</p>
           <p className="br kicker post-byline">
-            {formatPostDate(post.date)} &nbsp; [ {post.readMinutes} min read ]
+            {formatPostDate(post.date)} &nbsp;·&nbsp; {post.readMinutes} min read
           </p>
         </header>
 
@@ -102,7 +102,7 @@ export default async function PostPage({ params }: Params) {
 
       <section className="section post-more" data-nav="light" aria-labelledby="more-title">
         <h2 id="more-title" className="br kicker">
-          ( Keep reading )
+          Keep reading
         </h2>
         <ul className="blog-grid" style={{ marginTop: 28 }}>
           {more.map((p) => (
@@ -113,7 +113,7 @@ export default async function PostPage({ params }: Params) {
                   <span className="blog-tag br">{p.tag}</span>
                 </span>
                 <span className="blog-meta br">
-                  {formatPostDate(p.date)} &nbsp; [ {p.readMinutes} min read ]
+                  {formatPostDate(p.date)} &nbsp;·&nbsp; {p.readMinutes} min read
                 </span>
                 <h3 className="blog-title">{p.title}</h3>
                 <span className="blog-more">Read the guide →</span>

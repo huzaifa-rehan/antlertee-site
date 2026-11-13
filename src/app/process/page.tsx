@@ -27,7 +27,7 @@ export default function ProcessPage() {
 
       <section id="how-it-works" className="section dark pg-how" data-nav="dark" aria-labelledby="how-title">
         <div className="pg-how-head">
-          <p className="br kicker">( How it works ) &nbsp; [ 4 steps ]</p>
+          <p className="br kicker">How it works</p>
           <h2 id="how-title" className="h-section mt-4">
             How it
             <br />
@@ -52,6 +52,21 @@ export default function ProcessPage() {
                   <span className="dot">.</span>
                 </h3>
                 <p className="mt-5 max-w-[52ch] text-[17px] leading-relaxed text-[#c9c4bb]">{s.detail}</p>
+                {s.substeps && (
+                  <ol className="pg-sub" aria-label={`${s.title}: stages`}>
+                    {s.substeps.map((sub, k) => (
+                      <li key={sub.title}>
+                        <b aria-hidden="true">
+                          {s.n}.{k + 1}
+                        </b>
+                        <span>
+                          <strong>{sub.title}</strong>
+                          {sub.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
               </Reveal>
               <Reveal delay={0.1}>
                 <div className="mx-auto max-w-[320px] overflow-hidden rounded-[18px] bg-ink-2">
@@ -66,7 +81,7 @@ export default function ProcessPage() {
       <section className="section pg-faq" data-nav="light" aria-labelledby="faq-title">
         <div className="grid gap-10 md:grid-cols-[0.8fr_1.4fr] md:gap-[6vw]">
           <div>
-            <p className="br kicker">( FAQs )</p>
+            <p className="br kicker">FAQs</p>
             <h2 id="faq-title" className="h-section mt-4">
               Good
               <br />

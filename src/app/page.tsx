@@ -1,3 +1,4 @@
+import { ClientWork } from "@/components/home/ClientWork";
 import { HomeHero } from "@/components/home/HomeHero";
 import { Orbit } from "@/components/home/Orbit";
 import { ProcessProof } from "@/components/home/ProcessProof";
@@ -46,6 +47,7 @@ export default function HomePage() {
         title="The rack"
         intro="Pick a base, we build it to your spec. Open a piece to see fabric, weight and finishes."
       />
+      <ClientWork />
       <ProcessProof />
       <QuoteCta title={"Bring us your\ntech pack"} />
     </>

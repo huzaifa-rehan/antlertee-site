@@ -143,7 +143,7 @@ export function SendTechPack({ onBuild }: { onBuild: () => void }) {
 
       <form ref={formRef} className="ts-form" noValidate onSubmit={onSubmit} onChange={onChange} aria-describedby="ts-how">
         <div className="ts-how" id="ts-how">
-          <p className="br">( How it works )</p>
+          <p className="br">How it works</p>
           <ol>
             <li>Fill in the short form below.</li>
             <li>Press a button: WhatsApp or your email app opens with the message written.</li>

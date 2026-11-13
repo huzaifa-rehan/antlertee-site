@@ -6,9 +6,9 @@ import type { ImageId } from "./images";
 import { contact, facts } from "./site";
 
 export const hero = {
-  label: ["( Custom garment manufacturing )", "[ Karachi, PK ]"],
+  label: ["Custom garment manufacturing", "Karachi, PK"],
   lede: "Premium knitwear, outerwear and denim for clothing brands. Tech pack in, finished garments out, under your label.",
-  tags: [`[ MOQ ${facts.moq} / colour ]`, "[ Worldwide shipping ]"],
+  tags: [`MOQ ${facts.moq} / colour`, "Worldwide shipping"],
   phases: [
     { n: "01", title: "Pattern & cut", detail: "Custom GSM, fits, Pantone" },
     { n: "02", title: "Stitch", detail: "Cut & sew, export finishing" },
@@ -29,17 +29,17 @@ export const yarnToPackPhases = [
 
 export const statement = {
   text: "We build garments for brands that refuse average. Heavyweight knits, specialised washes, print and embroidery, from your tech pack to bulk, under one roof in Karachi.",
-  meta: ["( Karachi, PK )", `[ ${facts.brandsServed} brands ]`, "[ Exported worldwide ]"],
+  meta: ["Karachi, PK", `${facts.brandsServed} brands`, "Exported worldwide"],
 };
 
 export const marquee = [
-  "[ Yarn to pack ]",
-  `[ MOQ ${facts.moq} per colour ]`,
-  "[ Tech pack → bulk ]",
-  "[ Heavyweight knits ]",
-  "[ Acid & mineral washes ]",
-  "[ Screen, puff & embroidery ]",
-  "[ Worldwide shipping ]",
+  "Yarn to pack",
+  `MOQ ${facts.moq} per colour`,
+  "Tech pack to bulk",
+  "Heavyweight knits",
+  "Acid & mineral washes",
+  "Screen, puff & embroidery",
+  "Worldwide shipping",
 ];
 
 export const gallery: { slug: string; image: ImageId; tag: string; title: string; text: string }[] = [
@@ -94,7 +94,22 @@ export const collections: {
   },
 ];
 
-export const steps: { n: string; title: string; text: string; detail: string; image: ImageId }[] = [
+/**
+ * The stages inside bulk production (step 03), from the client's "How we make it" page. Its last two stages, quality check and
+ * press & pack, are left out here because step 04 (QC & ship) already covers them.
+ */
+export const bulkSubsteps: { title: string; text: string }[] = [
+  { title: "Yarn", text: "You choose the composition and weight. We source the yarn to match." },
+  { title: "Knitting", text: "Fabric knitted to your GSM, from light jersey to heavyweight fleece." },
+  { title: "Dyeing", text: "Colours matched to your Pantone codes, or garment-dyed after sewing for a lived-in look." },
+  { title: "Cutting", text: "Patterns graded and fabric cut precisely to your size chart." },
+  { title: "Print", text: "Screen, puff and heat transfer, tested on your fabric before bulk." },
+  { title: "Embroidery", text: "Flat, outline and chenille embroidery, digitised for your artwork." },
+  { title: "Stitching", text: "Construction built to your tech pack, from contrast panels to cuffs." },
+  { title: "Custom washes", text: "Acid, mineral, pigment and oil washes, plus vintage finishing." },
+];
+
+export const steps: { n: string; title: string; text: string; detail: string; image: ImageId; substeps?: typeof bulkSubsteps }[] = [
   {
     n: "01",
     title: "Send your tech pack",
@@ -118,6 +133,7 @@ export const steps: { n: string; title: string; text: string; detail: string; im
     detail:
       "Knitting, cut and sew, screen printing on manual and automatic presses, embroidery, specialised washes and garment finishing, all handled in-house in Karachi. No juggling multiple suppliers.",
     image: "factory-screen-line",
+    substeps: bulkSubsteps,
   },
   {
     n: "04",

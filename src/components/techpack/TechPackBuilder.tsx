@@ -230,7 +230,7 @@ export default function TechPackBuilder() {
 
       <form className="tp-step" onSubmit={onNext} noValidate aria-labelledby="tp-step-title">
         <header className="tp-step-head">
-          <p className="br kicker">( Step {String(step + 1).padStart(2, "0")} )</p>
+          <p className="br kicker">Step {String(step + 1).padStart(2, "0")}</p>
           <h3 id="tp-step-title" ref={headingRef} tabIndex={-1}>
             {current.title}
             <span className="dot">.</span>

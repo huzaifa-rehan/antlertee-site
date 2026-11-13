@@ -49,7 +49,7 @@ const OPTIONS: { mode: Mode; n: string; title: string; text: string }[] = [
 
 /**
  * The Process page hero: the page headline and the tech pack choice (build / send tabs) beside the 3D hoodie, which
- * stays pinned (CSS sticky) while it goes from a transparent ghost to the grey acid-washed garment as you scroll.
+ * plays by itself, from a transparent ghost to the grey acid-washed garment (ProcessHoodie.tsx).
  * Below the hero sit the panels. The URL hash picks the tab, so /process/#send-tech-pack opens the send panel and
  * #tech-pack or #build-tech-pack the builder.
  */
@@ -61,7 +61,6 @@ export function TechPackSection() {
   );
   const mode: Mode = hash === `#${PANEL.send}` ? "send" : "build";
   const tabsRef = useRef<HTMLDivElement>(null);
-  const zoneRef = useRef<HTMLDivElement>(null);
   const panelsRef = useRef<HTMLDivElement>(null);
 
   // Arriving with #send-tech-pack: that panel was hidden at first paint, so the browser could not scroll to it.
@@ -101,12 +100,12 @@ export function TechPackSection() {
 
   return (
     <section id="tech-pack" className="tph" data-nav="dark" data-mode={mode} aria-labelledby="process-title">
-      <div className="tph-zone" ref={zoneRef}>
+      <div className="tph-zone">
         <div className="tph-pin">
           <div className="tph-in">
             <div className="tph-left">
               <header className="tph-head">
-                <p className="br kicker tph-kicker">( Process ) &nbsp; [ Tech pack → bulk ]</p>
+                <p className="br kicker tph-kicker">Process &nbsp;·&nbsp; Tech pack to bulk</p>
                 <h1 id="process-title" className="tph-title">
                   Build your
                   <br />
@@ -146,7 +145,7 @@ export function TechPackSection() {
                 ))}
               </div>
             </div>
-            <ProcessHoodie zoneRef={zoneRef} />
+            <ProcessHoodie />
           </div>
         </div>
       </div>

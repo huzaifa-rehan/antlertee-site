@@ -138,7 +138,7 @@ export function SiteNav() {
               </ul>
             </nav>
             <p className="br" style={{ color: "var(--mute-inv)" }}>
-              ( Karachi, PK ) &nbsp; [ Yarn to pack ]
+              Karachi, Pakistan
             </p>
           </motion.div>
         )}

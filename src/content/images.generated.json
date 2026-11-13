@@ -286,5 +286,59 @@
       360,
       720
     ]
+  },
+  "spotify-bomber-front": {
+    "width": 320,
+    "height": 400,
+    "widths": [
+      320
+    ]
+  },
+  "spotify-bomber-back": {
+    "width": 320,
+    "height": 400,
+    "widths": [
+      320
+    ]
+  },
+  "spotify-bomber-flat": {
+    "width": 520,
+    "height": 650,
+    "widths": [
+      360,
+      520
+    ]
+  },
+  "valour-acid-tee": {
+    "width": 520,
+    "height": 693,
+    "widths": [
+      360,
+      520
+    ]
+  },
+  "valour-colourblock-hoodie": {
+    "width": 520,
+    "height": 693,
+    "widths": [
+      360,
+      520
+    ]
+  },
+  "valour-heavyweight-hoodie": {
+    "width": 520,
+    "height": 693,
+    "widths": [
+      360,
+      520
+    ]
+  },
+  "valour-garment-dyed-tee": {
+    "width": 520,
+    "height": 693,
+    "widths": [
+      360,
+      520
+    ]
   }
 }

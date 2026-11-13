@@ -17,7 +17,7 @@ export function ProductDetails({ product, back, headingId, headingLevel = "h2" }
     <div className="pdp-info">
       {back && <div className="pdp-back">{back}</div>}
       <p className="br pdp-kicker">
-        ( {product.category} ) &nbsp; [ {product.sub} ]
+        {product.category} &nbsp;/&nbsp; {product.sub}
       </p>
       <Heading id={headingId} className="pdp-name">
         {product.name}

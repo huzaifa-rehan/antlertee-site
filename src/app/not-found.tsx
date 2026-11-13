@@ -14,7 +14,7 @@ export default function NotFound() {
       aria-labelledby="nf-title"
       style={{ minHeight: "100svh", display: "flex", flexDirection: "column", justifyContent: "center" }}
     >
-      <p className="br kicker">( Error 404 ) &nbsp; [ Off the rack ]</p>
+      <p className="br kicker">Error 404 &nbsp;·&nbsp; Off the rack</p>
       <h1 id="nf-title" className="h-page" style={{ marginTop: 18 }}>
         Dropped
         <br />a stitch<span className="dot">.</span>

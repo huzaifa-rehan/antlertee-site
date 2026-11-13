@@ -13,7 +13,8 @@ export function SmoothScroll() {
 
   useEffect(() => {
     if (reduce) return;
-    const lenis = new Lenis({ autoRaf: true, lerp: 0.1, anchors: true });
+    // lerp 0.1 trailed the wheel by about 0.4s, which read as lag; 0.16 still eases but follows the hand.
+    const lenis = new Lenis({ autoRaf: true, lerp: 0.16, anchors: true });
     setLenis(lenis);
     return () => {
       lenis.destroy();

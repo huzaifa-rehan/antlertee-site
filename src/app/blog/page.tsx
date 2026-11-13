@@ -31,7 +31,7 @@ export default function BlogPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }} />
       <section className="page-hero dark" data-nav="dark" aria-labelledby="blog-title">
-        <p className="br kicker">( Blog ) &nbsp; [ {posts.length} guides ]</p>
+        <p className="br kicker">Blog</p>
         <h1 id="blog-title" className="h-page" style={{ marginTop: 18 }}>
           Made
           <br />
@@ -50,7 +50,7 @@ export default function BlogPage() {
                   <span className="blog-tag br">{p.tag}</span>
                 </span>
                 <span className="blog-meta br">
-                  {formatPostDate(p.date)} &nbsp; [ {p.readMinutes} min read ]
+                  {formatPostDate(p.date)} &nbsp;·&nbsp; {p.readMinutes} min read
                 </span>
                 <h2 className="blog-title">{p.title}</h2>
                 <p className="blog-sum">{p.summary}</p>

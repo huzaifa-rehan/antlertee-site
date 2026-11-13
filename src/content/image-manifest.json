@@ -253,6 +253,55 @@
       "aspect": "3:4",
       "focusY": 0.45,
       "alt": "All-over camo print pullover hoodie on a hanger"
+    },
+    {
+      "id": "spotify-bomber-front",
+      "src": "RESEARCH/acs-prototype-extract/spotify-bomber-front.jpg",
+      "aspect": "4:5",
+      "focusY": 0.5,
+      "alt": "Iridescent reflective bomber jacket on a hanger, front, with RADAR Pakistan printed across the chest"
+    },
+    {
+      "id": "spotify-bomber-back",
+      "src": "RESEARCH/acs-prototype-extract/spotify-bomber-back.jpg",
+      "aspect": "4:5",
+      "focusY": 0.5,
+      "alt": "The same reflective bomber jacket from the back, printed Spotify Crew"
+    },
+    {
+      "id": "spotify-bomber-flat",
+      "src": "RESEARCH/acs-prototype-extract/spotify-bomber-flat.jpg",
+      "aspect": "4:5",
+      "focusY": 0.3,
+      "alt": "Reflective bomber jackets laid flat on a dark floor, glowing pink under flash"
+    },
+    {
+      "id": "valour-acid-tee",
+      "src": "RESEARCH/acs-prototype-extract/valour-acid-tee.jpg",
+      "aspect": "3:4",
+      "focusY": 0.3,
+      "alt": "Valour oversized acid-wash tee with a large gothic chest print"
+    },
+    {
+      "id": "valour-colourblock-hoodie",
+      "src": "RESEARCH/acs-prototype-extract/valour-colourblock-hoodie.jpg",
+      "aspect": "3:4",
+      "focusY": 0.3,
+      "alt": "Green and white colour-block hoodie with outline embroidery"
+    },
+    {
+      "id": "valour-heavyweight-hoodie",
+      "src": "RESEARCH/acs-prototype-extract/valour-heavyweight-hoodie.jpg",
+      "aspect": "3:4",
+      "focusY": 0.3,
+      "alt": "Valour heavyweight black hoodie with raised logo print"
+    },
+    {
+      "id": "valour-garment-dyed-tee",
+      "src": "RESEARCH/acs-prototype-extract/valour-garment-dyed-tee.jpg",
+      "aspect": "3:4",
+      "focusY": 0.3,
+      "alt": "Garment-dyed green tee with a multi-colour back print, worn in a gym"
     }
   ]
 }

@@ -26,7 +26,7 @@ export default function ContactPage() {
     <section className="page-hero" data-nav="light" aria-labelledby="contact-title" style={{ paddingBottom: "14vh" }}>
       <div className="grid gap-12 lg:grid-cols-[0.9fr_1.3fr] lg:gap-[6vw]">
         <div>
-          <p className="br kicker">( Get a quote ) &nbsp; [ Karachi, PK ]</p>
+          <p className="br kicker">Get a quote</p>
           <h1 id="contact-title" className="h-page" style={{ marginTop: 18 }}>
             Start your
             <br />

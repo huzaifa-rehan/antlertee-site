@@ -37,9 +37,21 @@ export function Orbit() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const orbitState = orbit.current;
 
+    // Card sizes only change on resize; reading offsetWidth/Height inside layout() forced a layout on every scroll tick.
+    let itemW: number[] = [];
+    let itemH: number[] = [];
+    let stageW = 0;
+    let stageH = 0;
+    const measure = () => {
+      stageW = stage.clientWidth;
+      stageH = stage.clientHeight;
+      itemW = itemRefs.current.map((el) => el?.offsetWidth ?? 0);
+      itemH = itemRefs.current.map((el) => el?.offsetHeight ?? 0);
+    };
+
     const layout = () => {
-      const w = stage.clientWidth;
-      const h = stage.clientHeight;
+      const w = stageW;
+      const h = stageH;
       const small = window.innerWidth < 860;
       const cx = small ? w * 0.08 : w * 0.05;
       const cy = small ? h * 1.5 : h * 1.32;
@@ -57,8 +69,8 @@ export function Orbit() {
         if (!el) return;
         const d = i - orbit.current.phase;
         const a = A0 + d * SPACING;
-        const x = cx + R * Math.cos(a) - el.offsetWidth / 2;
-        const y = cy + R * Math.sin(a) - el.offsetHeight / 2;
+        const x = cx + R * Math.cos(a) - (itemW[i] ?? 0) / 2;
+        const y = cy + R * Math.sin(a) - (itemH[i] ?? 0) / 2;
         const s = 1 - Math.min(Math.abs(d), 1.4) * 0.28;
         gsap.set(el, {
           x,
@@ -107,6 +119,7 @@ export function Orbit() {
     gsap.set(titleRefs.current, { opacity: 0 });
     gsap.set(specRefs.current, { opacity: 0 });
     band.setAttribute("stroke", collections[0]?.accent ?? "#ffe500");
+    measure();
     layout();
     show(0);
 
@@ -116,7 +129,10 @@ export function Orbit() {
     };
     goToRef.current = goTo;
 
-    const ro = new ResizeObserver(layout);
+    const ro = new ResizeObserver(() => {
+      measure();
+      layout();
+    });
     ro.observe(stage);
 
     let st: ScrollTrigger | null = null;
@@ -192,13 +208,13 @@ export function Orbit() {
                 }}
                 aria-hidden={i !== active}
               >
-                <Picture id={c.image} sizes="(max-width: 860px) 40vw, 19vw" alt={i === active ? undefined : ""} />
+                <Picture id={c.image} sizes="(max-width: 860px) 50vw, 26vw" alt={i === active ? undefined : ""} />
               </div>
             ))}
           </div>
           <div className="o-copy">
             <p className="br" style={{ color: "var(--mute)" }}>
-              ( {pad(active + 1)} / {pad(N)} ) &nbsp; Collections
+              {pad(active + 1)} / {pad(N)} &nbsp;·&nbsp; Collections
             </p>
             <div className="o-titles" aria-live="polite">
               {collections.map((c, i) => (
