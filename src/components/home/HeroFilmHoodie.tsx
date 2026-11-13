@@ -140,8 +140,15 @@ const FINISH_GLSL = /* glsl */ `
   vec3 acsFinish = mix(acsRain, vec3(0.035), acsRib);
   diffuseColor.rgb = mix(diffuseColor.rgb, acsFinish, acsDyed);
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.03), acsInk);
+  // The flame outline (light lines in the model's own texture) is inked in near-black and kept almost opaque, so it
+  // reads clearly through the see-through film.
+  float acsFlame = 0.0;
+  #ifdef USE_MAP
+    acsFlame = smoothstep(0.16, 0.46, dot(acsTex.rgb, vec3(0.299, 0.587, 0.114)));
+  #endif
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.01), acsFlame * acsDyed * 0.96);
   diffuseColor.rgb *= 1.0 - 0.6 * vAcsShade;
-  float acsSolid = max(acsRib, acsInk);
+  float acsSolid = max(max(acsRib, acsInk), acsFlame * 0.92);
   diffuseColor.a = mix(1.0, mix(0.3 + 0.62 * acsFres, 0.93, acsSolid), acsDyed);
   totalEmissiveRadiance += acsRain * acsDyed * (1.0 - acsSolid) * (1.0 - 0.6 * vAcsShade) * (0.07 + 0.6 * acsFres);
   totalEmissiveRadiance += uYellow * acsBlade * 2.2;
@@ -171,6 +178,7 @@ function addFold(
         "#include <beginnormal_vertex>",
         `#include <beginnormal_vertex>
         vec3 acsP = position * uFoldK + uFoldB;
+        ${cacheKey === "acs-stitch-fold" ? `acsP += normalize(objectNormal) * ${STITCH_PUFF.toFixed(4)};` : ""}
         vec3 acsT = vec3(1.0, 0.0, 0.0);
         #ifdef USE_TANGENT
           acsT = objectTangent;
@@ -353,6 +361,9 @@ function buildAssets(scene: THREE.Object3D): Assets {
 }
 
 
+/** The stitch lines (seams and the flame outline) are thickened outwards by this much (garment-local units), so they stand
+ * proud of the film and read as solid dark lines instead of a thin dotted trace. */
+const STITCH_PUFF = 0.0045;
 const STITCH_PALE = new THREE.Color("#d8d2c6");
 const STITCH_DARK = new THREE.Color("#000000");
 
