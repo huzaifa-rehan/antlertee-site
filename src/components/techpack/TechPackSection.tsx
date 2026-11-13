@@ -37,7 +37,7 @@ const OPTIONS: { mode: Mode; n: string; title: string; text: string }[] = [
     mode: "build",
     n: "A",
     title: "Build a tech pack with us",
-    text: "Eight short steps: garment, fit, fabric, colours, artwork, sizes, labels. Download it as a PDF or send it.",
+    text: "Eight short steps, about three minutes. Start from a popular style, skip what you are unsure of, then send it on WhatsApp.",
   },
   {
     mode: "send",

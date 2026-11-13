@@ -1,0 +1,208 @@
+/* File drop zone for quote / tech pack forms. Uses the site tokens from globals.css. */
+.lf {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.lf-label {
+  font: 600 13px/1.2 var(--font-body);
+}
+.lf-label .opt {
+  font-weight: 400;
+  color: var(--mute);
+}
+.lf .hint {
+  font-size: 12.5px;
+  color: var(--mute);
+}
+.lf-drop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+  min-height: 112px;
+  padding: 20px;
+  border: 1.5px dashed rgba(13, 12, 11, 0.4);
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.lf-drop p {
+  margin: 0;
+  font-size: 15px;
+}
+.lf-drop[data-over] {
+  border-color: var(--ink);
+  border-style: solid;
+  background: #fffbd6;
+}
+.lf-drop[data-disabled] {
+  opacity: 0.6;
+}
+.lf-drop .pill:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--yellow);
+}
+.lf-drop-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--yellow);
+  font: 800 16px/1 var(--font-display);
+}
+.lf-or {
+  color: var(--mute);
+}
+.lf-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.lf-status {
+  min-height: 1em;
+  font-size: 13px;
+  color: var(--mute);
+}
+.lf-status:empty {
+  display: none;
+}
+.lf-problems {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lf-list {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.lf-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.lf-item[data-status="error"] {
+  border-color: #b3261e;
+}
+.lf-item-main {
+  display: grid;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.lf-name {
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lf-meta {
+  font-size: 12.5px;
+  color: var(--mute);
+}
+.lf-bar {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--paper-2);
+}
+.lf-bar i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transform-origin: left;
+  transition: transform 0.2s;
+}
+.lf-item[data-status="done"] .lf-bar i {
+  background: #2e7d32;
+}
+
+/* Send panel: primary "Send to Antlertee" + the WhatsApp / email fallback */
+.send-alt {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.send-alt h4,
+.send-alt .send-alt-h {
+  margin-bottom: 4px;
+  font: 600 13px/1.2 var(--font-body);
+}
+.send-alt .tp-out {
+  margin-top: 12px;
+}
+.send-ok {
+  padding: clamp(20px, 3vw, 30px);
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+  line-height: 1.55;
+}
+.send-ok h3,
+.send-ok h4 {
+  font: 900 clamp(26px, 3vw, 36px) / 1 var(--font-display);
+  letter-spacing: var(--track);
+}
+.send-ok:focus {
+  outline: none;
+}
+.send-ok:focus-visible {
+  box-shadow: 0 0 0 4px var(--yellow);
+}
+.send-ref {
+  display: inline-block;
+  margin: 14px 0 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--yellow);
+  color: var(--ink);
+  font: 800 18px/1.2 var(--font-display);
+  letter-spacing: 0.02em;
+}
+.send-ok ol {
+  margin: 12px 0 18px;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  color: #d8d3ca;
+}
+.send-ok .pill {
+  border-color: var(--paper);
+}
+.send-busy {
+  font-size: 14px;
+  font-weight: 600;
+}
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .lf-drop {
+    justify-content: flex-start;
+    text-align: left;
+  }
+}

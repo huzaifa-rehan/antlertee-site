@@ -1,4 +1,8 @@
-import { fallbackSrc, getImage, srcSet, type ImageId } from "@/content/images";
+"use client";
+
+import type { ImageId } from "@/content/images";
+import { resolveImage } from "@/lib/media";
+import { useMediaOverride } from "./MediaOverrides";
 
 interface PictureProps {
   id: ImageId;
@@ -12,15 +16,18 @@ interface PictureProps {
   draggable?: boolean;
 }
 
-/** AVIF with WebP fallback, intrinsic width/height to prevent layout shift. Images are pre-built by `npm run images`. */
+/**
+ * AVIF with WebP fallback, intrinsic width/height to prevent layout shift. Images are pre-built by `npm run images`;
+ * a replacement uploaded in the admin (/admin/media/) takes over when there is one.
+ */
 export function Picture({ id, sizes, className, priority, alt, draggable }: PictureProps) {
-  const img = getImage(id);
+  const img = resolveImage(id, useMediaOverride(id));
   return (
     <picture>
-      <source type="image/avif" srcSet={srcSet(img, "avif")} sizes={sizes} />
-      <source type="image/webp" srcSet={srcSet(img, "webp")} sizes={sizes} />
+      <source type="image/avif" srcSet={img.avifSrcSet} sizes={sizes} />
+      <source type="image/webp" srcSet={img.webpSrcSet} sizes={sizes} />
       <img
-        src={fallbackSrc(img)}
+        src={img.src}
         alt={alt ?? img.alt}
         width={img.width}
         height={img.height}

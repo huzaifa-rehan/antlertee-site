@@ -4,10 +4,8 @@ import { Orbit } from "@/components/home/Orbit";
 import { ProcessProof } from "@/components/home/ProcessProof";
 import { Statement } from "@/components/home/Statement";
 import { WorkGallery } from "@/components/home/WorkGallery";
-import { Marquee } from "@/components/Marquee";
 import { Rack } from "@/components/product/Rack";
 import { QuoteCta } from "@/components/QuoteCta";
-import { marquee } from "@/content/copy";
 import { featuredProducts } from "@/content/products";
 import { SITE_URL, brand, contact, facts } from "@/content/site";
 import { pageMeta } from "@/lib/meta";
@@ -38,7 +36,6 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization) }} />
       <HomeHero />
       <Statement />
-      <Marquee items={marquee} />
       <WorkGallery />
       <Orbit />
       <Rack

@@ -2,28 +2,35 @@
   "name": "antlertee-site",
   "version": "1.0.0",
   "private": true,
-  "description": "Antlertee Creative Studios: production website (Next.js static export).",
+  "description": "Antlertee Creative Studios: production website (Next.js on Vercel, statically generated pages + leads inbox and media admin).",
   "scripts": {
     "dev": "next dev --port 5192 --hostname 127.0.0.1",
     "build": "next build",
-    "start": "python -m http.server 5192 --bind 127.0.0.1 --directory out",
+    "start": "next start --port 5192 --hostname 127.0.0.1",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/*.test.mjs\"",
     "images": "node scripts/build-images.mjs",
-    "check": "npm run typecheck && npm run lint && npm run build"
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mjs",
+    "admin:hash": "node scripts/admin-hash.mjs",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build"
   },
   "dependencies": {
+    "@neondatabase/serverless": "1.2.0",
     "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.2",
+    "@vercel/blob": "2.8.2",
     "gsap": "3.15.1",
     "lenis": "1.3.27",
     "motion": "14.12.0",
     "next": "16.4.6",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "sharp": "0.35.5",
     "three": "0.187.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.13",
     "@tailwindcss/postcss": "4.3.5",
     "@types/node": "24.19.2",
     "@types/react": "19.3.0",
@@ -31,7 +38,6 @@
     "@types/three": "0.187.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.6",
-    "sharp": "0.35.5",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3"
   }

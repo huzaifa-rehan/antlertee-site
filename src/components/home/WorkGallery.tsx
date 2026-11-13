@@ -72,6 +72,7 @@ export function WorkGallery() {
         ref={sectionRef}
         className="work"
         data-nav="dark"
+        data-snap="edge"
         data-mode={pinned ? "pin" : "scroll"}
         aria-labelledby="work-title"
         id="work"

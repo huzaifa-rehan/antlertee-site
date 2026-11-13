@@ -1,3 +1,4 @@
+import { splitEvenly } from "./quantity";
 import {
   emptyTechPack,
   fabricTypes,
@@ -9,6 +10,7 @@ import {
   sizes as allSizes,
   techniques,
   washes,
+  weights,
   zonesFor,
   type Colourway,
   type Placement,
@@ -33,6 +35,7 @@ export function sanitize(raw: unknown): TechPack {
   const ids = (list: readonly { id: string }[]) => list.map((x) => x.id);
   const out: TechPack = {
     ...d,
+    preset: str(raw.preset, 40) ?? d.preset,
     garment: oneOf(raw.garment, ids(garmentTypes) as TechPack["garment"][]) ?? d.garment,
     garmentOther: str(raw.garmentOther, 200) ?? d.garmentOther,
     styleName: str(raw.styleName, 120) ?? d.styleName,
@@ -148,7 +151,9 @@ export const washLabel = (d: TechPack): string => labelOf(washes, d.wash);
 export const techniqueLabel = (id: string): string => labelOf(techniques, id);
 export const neckLabelLabel = (d: TechPack): string => labelOf(neckLabels, d.neckLabel);
 
-export const colourwayName = (c: Colourway, i: number): string => c.name.trim() || `Colourway ${i + 1}`;
+export const weightLabel = (d: TechPack): string => weights.find((w) => w.gsm === d.gsm)?.label ?? "";
+
+export const colourwayName = (c: Colourway, i: number): string => c.name.trim() || `Colour ${i + 1}`;
 
 export function qty(d: TechPack, cwId: string, size: SizeId): number {
   const n = Number.parseInt(d.quantities[cwId]?.[size] ?? "", 10);
@@ -191,6 +196,64 @@ export function fabricLine(d: TechPack): string {
   return [fabricLabel(d), d.composition.trim(), d.gsm ? `${d.gsm} GSM` : ""].filter(Boolean).join(", ");
 }
 
+/** The quantities grid is an even split when every colour and size holds the same number (give or take one). */
+export function isEvenSplit(d: TechPack): boolean {
+  const total = grandTotal(d);
+  if (total === 0) return true;
+  const even = splitEvenly(total, d.colourways.map((c) => c.id), d.sizes);
+  return d.colourways.every((c) => d.sizes.every((s) => qty(d, c.id, s) === Number.parseInt(even[c.id]?.[s] || "0", 10)));
+}
+
+/** Writes an even split of `total` into the quantities, replacing what was there. */
+export function withEvenSplit(d: TechPack, total: number): TechPack {
+  return { ...d, quantities: splitEvenly(total, d.colourways.map((c) => c.id), d.sizes) };
+}
+
+/** Keeps the visitor's total steady when colours are added or removed, if they had not set the sizes by hand. */
+export function rebalance(prev: TechPack, next: TechPack): TechPack {
+  const total = grandTotal(prev);
+  return total > 0 && isEvenSplit(prev) ? withEvenSplit(next, total) : next;
+}
+
+/* ---------- plain-English read-back ---------- */
+
+const PLURAL: Record<string, string> = {
+  tee: "T-shirts",
+  hoodie: "hoodies",
+  sweatshirt: "sweatshirts",
+  jacket: "jackets",
+  trousers: "pairs of trousers",
+  shorts: "pairs of shorts",
+  jersey: "jerseys",
+};
+const WASH_WORD: Record<string, string> = { acid: "acid-wash", mineral: "mineral-wash", enzyme: "enzyme-wash", distressed: "distressed" };
+
+const listWords = (items: string[]): string =>
+  items.length <= 1 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+
+export const colourNames = (d: TechPack): string[] => d.colourways.map((c, i) => (c.name.trim() || `colour ${i + 1}`).toLowerCase());
+
+/** "You are asking for 300 oversized acid-wash hoodies in washed black." */
+export function askSentence(d: TechPack): string {
+  const total = grandTotal(d);
+  const noun = d.garment === "other" ? d.garmentOther.trim().toLowerCase() || "garments" : (PLURAL[d.garment] ?? "garments");
+  const adjectives = [d.fit && d.fit !== "regular" ? fitLabel(d).toLowerCase() : "", WASH_WORD[d.wash] ?? ""].filter(Boolean);
+  const what = [...adjectives, noun].join(" ");
+  const count = total > 0 ? `${total} ` : "";
+  const colours = d.colourways.some((c) => c.name.trim()) || d.colourways.length > 1 ? ` in ${listWords(colourNames(d))}` : "";
+  return `You are asking for ${count}${what}${colours}.`;
+}
+
+/** The size range as words: "sizes S to XL". */
+export function sizeWords(d: TechPack): string {
+  if (!d.sizes.length) return "";
+  const first = d.sizes[0];
+  const last = d.sizes[d.sizes.length - 1];
+  const run = d.sizes.length > 2 && allSizes.slice(allSizes.indexOf(first as SizeId), allSizes.indexOf(last as SizeId) + 1).length === d.sizes.length;
+  if (d.sizes.length === 1) return `size ${first}`;
+  return run ? `sizes ${first} to ${last}` : `sizes ${listWords([...d.sizes])}`;
+}
+
 export function fitLine(d: TechPack): string {
   return [fitLabel(d), d.dropShoulder === "yes" ? "drop shoulder" : d.dropShoulder === "no" ? "set-in shoulder" : ""]
     .filter(Boolean)
@@ -199,14 +262,13 @@ export function fitLine(d: TechPack): string {
 
 /* ---------- validation ---------- */
 
-export type ErrorKey = "garment" | "garmentOther" | "quantities" | "name" | "email" | "whatsapp" | "deadline" | "gsm";
+export type ErrorKey = "garment" | "garmentOther" | "quantities" | "name" | "email" | "whatsapp" | "deadline";
 export type Errors = Partial<Record<ErrorKey, string>>;
 
 /** Which step each error belongs to, so the summary can link back to it. */
 export const errorStep: Record<ErrorKey, StepId> = {
   garment: "garment",
   garmentOther: "garment",
-  gsm: "fabric",
   quantities: "sizes",
   deadline: "labels",
   name: "review",
@@ -217,8 +279,7 @@ export const errorStep: Record<ErrorKey, StepId> = {
 export const errorField: Record<ErrorKey, string> = {
   garment: "tp-garment-tee",
   garmentOther: "tp-garment-other",
-  gsm: "tp-gsm",
-  quantities: "tp-qty-first",
+  quantities: "tp-qty-total",
   deadline: "tp-deadline",
   name: "tp-name",
   email: "tp-email",
@@ -237,7 +298,7 @@ const PHONE_RE = /^\+?\d{8,15}$/;
 /** Name plus at least one valid way to reply: the same rules as the contact page's quote form. */
 export function validateContact(v: { name: string; email: string; whatsapp: string }): Errors {
   const e: Errors = {};
-  if (v.name.trim().length < 2) e.name = "Enter your name.";
+  if (v.name.trim().length < 2) e.name = "Add your name so we know who to reply to.";
   const email = v.email.trim();
   const phone = v.whatsapp.replace(/[\s()-]/g, "");
   if (!email && !phone) {
@@ -252,12 +313,12 @@ export function validateContact(v: { name: string; email: string; whatsapp: stri
 export function validateStep(d: TechPack, step: StepId): Errors {
   const e: Errors = {};
   if (step === "garment") {
-    if (!d.garment) e.garment = "Choose a garment type.";
+    if (!d.garment) e.garment = "Pick what we are making, or tap a starting point.";
     else if (d.garment === "other" && d.garmentOther.trim().length < 2) e.garmentOther = "Tell us what the garment is.";
   }
-  if (step === "fabric" && d.gsm && !/^\d{2,4}$/.test(d.gsm)) e.gsm = "Enter the weight as a number, like 280.";
-  if (step === "sizes" && grandTotal(d) === 0) e.quantities = "Enter a quantity for at least one size in one colourway.";
-  if (step === "labels" && d.deadline && d.deadline < todayIso()) e.deadline = "Choose a date in the future.";
+  // Only what we cannot quote without: the garment and a rough quantity. Fit, fabric, colours and the rest can be "not sure".
+  if (step === "sizes" && grandTotal(d) === 0) e.quantities = "Type a rough number of pieces. A guess is fine.";
+  if (step === "labels" && d.deadline && d.deadline < todayIso()) e.deadline = "Choose a date that has not passed, or leave it empty.";
   return e;
 }
 
@@ -265,7 +326,6 @@ export function validateStep(d: TechPack, step: StepId): Errors {
 export function validateAll(d: TechPack, purpose: "print" | "send"): Errors {
   const e: Errors = {
     ...validateStep(d, "garment"),
-    ...validateStep(d, "fabric"),
     ...validateStep(d, "sizes"),
     ...validateStep(d, "labels"),
   };
@@ -279,22 +339,23 @@ export function composeTechPack(d: TechPack): { subject: string; body: string } 
   const add = (label: string, value: string) => {
     if (value.trim()) lines.push(`${label}: ${value.trim()}`);
   };
+  const unsure = "not sure, please suggest";
   add("Garment", [garmentLabel(d), d.styleName.trim() ? `"${d.styleName.trim()}"` : ""].filter(Boolean).join(" "));
-  add("Fit", [fitLine(d), d.lengthNotes.trim()].filter(Boolean).join("; "));
-  add("Fabric", fabricLine(d));
-  if (d.wash !== "none") add("Wash", washLabel(d));
+  add("Fit", [fitLine(d), d.lengthNotes.trim()].filter(Boolean).join("; ") || unsure);
+  add("Fabric", fabricLine(d) || unsure);
+  if (d.wash !== "none") add("Wash", d.wash === "unsure" ? unsure : washLabel(d));
 
-  const cws = d.colourways.map((c, i) => `${colourwayName(c, i)} (${[c.pantone.trim() && `Pantone ${c.pantone.trim()}`, c.hex.toUpperCase()].filter(Boolean).join(", ")})`);
-  add("Colourways", cws.join("; "));
+  const cws = d.colourways.map((c, i) => `${colourwayName(c, i)}: ${[c.hex.toUpperCase(), c.pantone.trim() && `Pantone ${c.pantone.trim()}`].filter(Boolean).join(", ")}`);
+  add("Colours", cws.join("; "));
 
   const placements = activePlacements(d);
   if (placements.length) {
-    add("Artwork", placements.map((p) => `${p.label}: ${[p.technique || "technique TBC", p.size].filter(Boolean).join(", ")}`).join("; "));
+    add("Artwork", placements.map((p) => `${p.label}: ${[p.technique || "technique to be confirmed", p.size].filter(Boolean).join(", ")}`).join("; "));
   }
   add("Artwork notes", d.artworkNotes);
 
   const total = grandTotal(d);
-  lines.push("", `Quantities (total ${total} pcs):`);
+  lines.push("", `Quantities, ${total} pcs in total:`);
   d.colourways.forEach((c, i) => {
     const t = colourwayTotal(d, c.id);
     if (!t) return;
@@ -316,9 +377,8 @@ export function composeTechPack(d: TechPack): { subject: string; body: string } 
   add("Brand", d.brand);
   add("Email", d.email);
   add("WhatsApp", d.whatsapp);
-  lines.push("", "I will attach my artwork files and the printed tech pack (PDF) here.");
 
   const brand = d.brand.trim();
-  const subject = `Tech pack${brand ? `: ${brand}` : ""} (${garmentLabel(d) || "garment"}, ${total} pcs)`;
+  const subject = `Tech pack${brand ? `: ${brand}` : ""}, ${garmentLabel(d) || "garment"}, ${total} pcs`;
   return { subject, body: lines.join("\n") };
 }

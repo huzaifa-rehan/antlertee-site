@@ -1,9 +1,14 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { LeadFileDrop, useLeadFiles } from "@/components/uploads/LeadFiles";
 import { contact, facts, mailtoLink, whatsappLink } from "@/content/site";
 import { garmentTypes, techPackChecklist } from "@/content/techpack";
+import { submitLead } from "@/lib/leads/submit";
+import { goToWhatsApp, openHandoffTab, saveForHandoff, whatsappMessage, type HandoffInfo } from "@/lib/leads/whatsapp";
 import { todayIso, validateContact, type Errors } from "./logic";
+
+type Phase = { kind: "idle" } | { kind: "sending" } | { kind: "sent"; info: HandoffInfo; href: string; opened: boolean };
 
 type Field = "name" | "brand" | "email" | "whatsapp" | "product" | "quantity" | "deadline" | "notes";
 type Values = Record<Field, string>;
@@ -49,28 +54,72 @@ function compose(v: Values): { subject: string; body: string } {
     "",
     ...rows.filter(([, val]) => val.trim()).map(([k, val]) => `${k}: ${val.trim()}`),
     ...(v.notes.trim() ? ["", v.notes.trim()] : []),
-    "",
-    "My tech pack files are attached.",
   ].join("\n");
   const subject = `Tech pack${v.brand.trim() ? `: ${v.brand.trim()}` : ""}${product ? ` (${product})` : ""}`;
   return { subject, body };
 }
 
-/** "Send your own tech pack": a checklist, a short form, then WhatsApp or email opens with the message ready. */
+/**
+ * "Send your own tech pack": a checklist, a short form with file upload, then "Send it on WhatsApp": the request and
+ * files are saved to the admin inbox and a chat opens with the message already written. Email is the alternative.
+ */
 export function SendTechPack({ onBuild }: { onBuild: () => void }) {
   const formRef = useRef<HTMLFormElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
+  const okRef = useRef<HTMLDivElement>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitted, setSubmitted] = useState(false);
-  const [sent, setSent] = useState<{ channel: "whatsapp" | "email"; href: string } | null>(null);
+  const [emailHref, setEmailHref] = useState<string | null>(null);
+  const [phase, setPhase] = useState<Phase>({ kind: "idle" });
+  const files = useLeadFiles();
+  const sending = phase.kind === "sending";
 
   const read = (form: HTMLFormElement): Values => {
     const fd = new FormData(form);
     return Object.fromEntries(ORDER.map((k) => [k, String(fd.get(k) ?? "")])) as Values;
   };
 
+  const sendOnWhatsApp = async (values: Values, honeypot: string) => {
+    // Open the tab now (inside the click), then point it at WhatsApp once the request is saved.
+    const tab = openHandoffTab();
+    setPhase({ kind: "sending" });
+    const product = garmentTypes.find((g) => g.id === values.product)?.label ?? values.product;
+    const fields: Record<string, string> = { product };
+    if (values.quantity) fields.quantity = values.quantity;
+    if (values.deadline) fields.deadline = values.deadline;
+    const info = await saveForHandoff({
+      pickedCount: files.items.length,
+      upload: () => files.uploadAll(),
+      save: (refs) =>
+        submitLead({
+          kind: "techpack",
+          name: values.name,
+          email: values.email,
+          whatsapp: values.whatsapp,
+          brand: values.brand,
+          message: values.notes,
+          fields,
+          files: refs,
+          website: honeypot,
+        }),
+    });
+    const href = whatsappLink(whatsappMessage(compose(values).body, info));
+    const opened = goToWhatsApp(tab, href);
+    setPhase({ kind: "sent", info, href, opened });
+    requestAnimationFrame(() => okRef.current?.focus());
+  };
+
+  const sendAnother = () => {
+    files.reset();
+    setErrors({});
+    setSubmitted(false);
+    setEmailHref(null);
+    setPhase({ kind: "idle" });
+  };
+
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (sending) return;
     const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const channel = submitter?.value === "email" ? "email" : "whatsapp";
     const values = read(e.currentTarget);
@@ -78,15 +127,19 @@ export function SendTechPack({ onBuild }: { onBuild: () => void }) {
     setErrors(found);
     setSubmitted(true);
     if (Object.keys(found).length) {
-      setSent(null);
+      setEmailHref(null);
       requestAnimationFrame(() => summaryRef.current?.focus());
       return;
     }
+    if (channel === "whatsapp") {
+      setEmailHref(null);
+      void sendOnWhatsApp(values, String(new FormData(e.currentTarget).get("website") ?? ""));
+      return;
+    }
     const { subject, body } = compose(values);
-    const href = channel === "whatsapp" ? whatsappLink(body) : mailtoLink(subject, body);
-    setSent({ channel, href });
-    if (channel === "whatsapp") window.open(href, "_blank", "noopener,noreferrer");
-    else window.location.href = href;
+    const href = mailtoLink(subject, `${body}\n\nMy tech pack files are attached.`);
+    setEmailHref(href);
+    window.location.href = href;
   };
 
   const onChange = () => {
@@ -141,17 +194,60 @@ export function SendTechPack({ onBuild }: { onBuild: () => void }) {
         </p>
       </div>
 
-      <form ref={formRef} className="ts-form" noValidate onSubmit={onSubmit} onChange={onChange} aria-describedby="ts-how">
+      {phase.kind === "sent" ? (
+        <div className="ts-form">
+          <div className="send-ok" role="status" tabIndex={-1} ref={okRef}>
+            <h4>
+              {phase.opened ? "Press send in WhatsApp" : "One tap left"}
+              <span className="dot">.</span>
+            </h4>
+            <p>
+              {phase.opened
+                ? "WhatsApp opened in a new tab with your message already written. Press send and we will take it from there."
+                : "Your message is written and ready. Tap the button to open WhatsApp, then press send."}
+            </p>
+            <p style={{ marginTop: 16 }}>
+              <a className="pill solid" href={phase.href} target="_blank" rel="noopener noreferrer">
+                {phase.opened ? "Take me back to WhatsApp" : "Take me to WhatsApp"}
+              </a>
+            </p>
+            {phase.info.reference ? (
+              <>
+                <p>Your tech pack files are saved with us. Your reference:</p>
+                <p className="send-ref">{phase.info.reference}</p>
+              </>
+            ) : (
+              <p>
+                We could not save a copy on our side just now, so the chat is the way to reach us. The message has all your details.
+              </p>
+            )}
+            {phase.info.attachLater && (
+              <p>Tap the paperclip or + in the chat, choose Document, and attach your tech pack files before you send.</p>
+            )}
+            <ol>
+              <li>We go through your files and details.</li>
+              <li>We reply on WhatsApp with questions, fabric options and sampling.</li>
+              <li>Then a price for your quantity.</li>
+            </ol>
+            <p style={{ marginTop: 16 }}>
+              <button type="button" className="pill on-dark" onClick={sendAnother}>
+                Send another tech pack
+              </button>
+            </p>
+          </div>
+        </div>
+      ) : (
+      <form ref={formRef} className="ts-form" noValidate onSubmit={onSubmit} onChange={onChange} aria-describedby="ts-how" aria-busy={sending || undefined}>
         <div className="ts-how" id="ts-how">
           <p className="br">How it works</p>
           <ol>
             <li>Fill in the short form below.</li>
-            <li>Press a button: WhatsApp or your email app opens with the message written.</li>
             <li>
-              <strong>Attach your tech pack files there</strong> (PDF, AI, PNG) and send.
+              <strong>Add your tech pack files</strong> (PDF, AI, PNG, Excel and more).
             </li>
+            <li>Press Send it on WhatsApp. A chat opens with your message already written, you just press send.</li>
           </ol>
-          <p>Files are attached in WhatsApp or email. Nothing is uploaded to this website.</p>
+          <p>Your files are saved with the Antlertee team only. Prefer email? Use the button at the bottom.</p>
         </div>
 
         {errorList.length > 0 && (
@@ -168,14 +264,10 @@ export function SendTechPack({ onBuild }: { onBuild: () => void }) {
             </ul>
           </div>
         )}
-        {sent && errorList.length === 0 && (
+        {emailHref && errorList.length === 0 && (
           <div className="status-ok" role="status">
-            <strong>{sent.channel === "whatsapp" ? "WhatsApp is open in a new tab." : "Your email app is open."}</strong>{" "}
-            {sent.channel === "whatsapp"
-              ? "Tap the paperclip or + in the chat, choose Document, attach your tech pack files, then send."
-              : "Use Attach (the paperclip) to add your tech pack files, then send."}{" "}
-            Nothing happened?{" "}
-            <a href={sent.href} target={sent.channel === "whatsapp" ? "_blank" : undefined} rel="noopener noreferrer">
+            <strong>Your email app is open.</strong> Use Attach (the paperclip) to add your tech pack files, then send. Nothing happened?{" "}
+            <a href={emailHref} rel="noopener noreferrer">
               Open it again
             </a>{" "}
             or write to {contact.email}.
@@ -190,7 +282,7 @@ export function SendTechPack({ onBuild }: { onBuild: () => void }) {
           </div>
           <div className="field">
             <label htmlFor="ts-brand">
-              {LABELS.brand} <span className="opt">(optional)</span>
+              {LABELS.brand} <span className="opt">Optional</span>
             </label>
             <input {...fp("brand")} type="text" autoComplete="organization" />
           </div>
@@ -223,7 +315,7 @@ export function SendTechPack({ onBuild }: { onBuild: () => void }) {
           </div>
           <div className="field">
             <label htmlFor="ts-quantity">
-              {LABELS.quantity} <span className="opt">(pieces, optional)</span>
+              {LABELS.quantity} <span className="opt">Optional, in pieces</span>
             </label>
             <input {...fp("quantity", true)} type="number" min={1} step={1} inputMode="numeric" />
             <p className="hint" id="ts-quantity-hint">
@@ -233,31 +325,48 @@ export function SendTechPack({ onBuild }: { onBuild: () => void }) {
           </div>
           <div className="field">
             <label htmlFor="ts-deadline">
-              {LABELS.deadline} <span className="opt">(optional)</span>
+              {LABELS.deadline} <span className="opt">Optional</span>
             </label>
             <input {...fp("deadline")} type="date" min={todayIso()} />
             {err("deadline")}
           </div>
           <div className="field full">
             <label htmlFor="ts-notes">
-              {LABELS.notes} <span className="opt">(optional)</span>
+              {LABELS.notes} <span className="opt">Optional</span>
             </label>
             <textarea {...fp("notes")} className="input tp-textarea" rows={4} placeholder="Colours, sampling first, anything we should know" />
+          </div>
+          <div className="field full">
+            <LeadFileDrop idPrefix="ts-files" label="Your tech pack files" files={files} disabled={sending} />
+          </div>
+          <div className="hp-field" aria-hidden="true">
+            <label htmlFor="ts-website">Website</label>
+            <input id="ts-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
           </div>
         </div>
 
         <div className="tp-out">
-          <button type="submit" value="whatsapp" className="pill inked lg">
-            Open WhatsApp
-          </button>
-          <button type="submit" value="email" className="pill lg">
-            Open email
+          <button type="submit" value="whatsapp" className="pill inked lg" disabled={sending}>
+            {sending ? "Opening WhatsApp…" : "Send it on WhatsApp"}
           </button>
         </div>
-        <p className="tp-hint tp-out-note">
-          Sends to WhatsApp {contact.whatsappDisplay} or {contact.email}. Remember to attach your files before you press send.
+        <p className="tp-hint tp-out-note" role={sending ? "status" : undefined}>
+          {sending
+            ? "Saving your tech pack. Keep this page open, WhatsApp opens in a moment."
+            : "WhatsApp opens with your message written. Your files are saved with your request, so there is nothing to attach."}
         </p>
+
+        <div className="send-alt">
+          <p className="send-alt-h">Prefer email?</p>
+          <div className="tp-out">
+            <button type="submit" value="email" className="pill lg" disabled={sending}>
+              Email it instead
+            </button>
+          </div>
+          <p className="tp-hint tp-out-note">Opens your email app to {contact.email}. Remember to attach your files before you press send.</p>
+        </div>
       </form>
+      )}
     </div>
   );
 }

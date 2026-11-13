@@ -8,11 +8,53 @@ interface ProductDetailsProps {
   back?: ReactNode;
   headingId: string;
   headingLevel?: "h1" | "h2";
+  /** The product page lays this column out inside colour bands: its back link, kicker and quote button live in the bands, not here. */
+  inBands?: boolean;
 }
 
 /** The info column of a product view: shared by the wardrobe overlay and the deep-linkable product page. */
-export function ProductDetails({ product, back, headingId, headingLevel = "h2" }: ProductDetailsProps) {
+export function ProductDetails({ product, back, headingId, headingLevel = "h2", inBands = false }: ProductDetailsProps) {
   const Heading = headingLevel;
+  if (inBands) {
+    return (
+      <div className="pdp-info pdp-info-bands">
+        <Heading id={headingId} className="pdp-name">
+          {product.name}
+          <span className="dot">.</span>
+        </Heading>
+        <p className="pdp-desc">{product.description}</p>
+        <div className="pdp-cols">
+          <dl className="spec-list">
+            {product.specs.map((s) => (
+              <div key={s.label}>
+                <dt>{s.label}</dt>
+                <dd>{s.value}</dd>
+              </div>
+            ))}
+            <div>
+              <dt>MOQ</dt>
+              <dd>{product.moq}</dd>
+            </div>
+            {/* Phones only (hidden by CSS elsewhere): the finishes as one row, so the separate list can go. */}
+            <div className="spec-finishes">
+              <dt>Finishes</dt>
+              <dd>{product.finishes.join(", ")}</dd>
+            </div>
+          </dl>
+          <div className="pdp-finishes">
+            <p className="br pdp-label" id={`${headingId}-finishes`}>
+              Finishes
+            </p>
+            <ul className="chips" aria-labelledby={`${headingId}-finishes`}>
+              {product.finishes.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="pdp-info">
       {back && <div className="pdp-back">{back}</div>}
@@ -46,7 +88,7 @@ export function ProductDetails({ product, back, headingId, headingLevel = "h2" }
       </ul>
       <div className="pdp-cta">
         <Link className="pill solid lg" href={`/contact/?product=${product.slug}`}>
-          Request a quote
+          Get my price on this
         </Link>
         <span className="pdp-price">Price on request</span>
       </div>

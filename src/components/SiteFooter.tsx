@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { brand, contact, nav, whatsappLink } from "@/content/site";
 import { modelCredit } from "@/content/credits";
+import { NewsletterForm } from "./NewsletterForm";
 
 const icon = { width: 18, height: 18, viewBox: "0 0 24 24", "aria-hidden": true, focusable: false } as const;
 const outline = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -58,17 +59,10 @@ export function SiteFooter() {
               yours<span className="dot">.</span>
             </h2>
             <p className="ft-lede">
-              Questions, a sample, or just a rough mockup? Message us on WhatsApp or email and we will reply there.
+              Questions, a sample, or just a rough mockup? Message us on WhatsApp or email and we will reply there. Or join the list and see the next drop first.
             </p>
           </div>
-          <div className="ft-pill">
-            <a className="ft-pill-mail" href={`mailto:${contact.email}`}>
-              {contact.email}
-            </a>
-            <a className="ft-pill-btn" href={whatsappLink()} target="_blank" rel="noopener noreferrer">
-              WhatsApp us
-            </a>
-          </div>
+          <NewsletterForm />
         </div>
 
         <div className="ft-cols">

@@ -1,0 +1,104 @@
+/* Footer newsletter sign-up (sits on the dark footer). */
+.nl {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.nl-label {
+  font: 700 13px / 1.2 var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--yellow);
+}
+.nl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 22px;
+  border-radius: 99px;
+  background: rgba(244, 242, 238, 0.07);
+  border: 1px solid transparent;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  min-width: 0;
+}
+.nl-row:focus-within {
+  border-color: var(--yellow);
+  background: rgba(244, 242, 238, 0.11);
+}
+.nl-row input[type="email"] {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--paper);
+  font: 500 16px / 1.2 var(--font-body);
+}
+.nl-row input[type="email"]::placeholder {
+  color: var(--mute-inv);
+}
+.nl-btn {
+  flex: none;
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 99px;
+  background: var(--yellow);
+  color: var(--ink);
+  font: 700 15px / 1 var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.nl-btn:hover:not(:disabled) {
+  background: var(--paper);
+}
+.nl-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.nl-note {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mute-inv);
+}
+.nl-note[data-error] {
+  color: #ffb4a8;
+}
+.nl-note a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+.nl-done-h {
+  margin: 0;
+  font: 800 clamp(22px, 2.4vw, 32px) / 1.05 var(--font-display);
+  letter-spacing: -0.03em;
+  color: var(--yellow);
+}
+.nl-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+@media (max-width: 859.98px) {
+  .nl-row {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 24px;
+    padding: 12px;
+  }
+  .nl-row input[type="email"] {
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .nl-btn {
+    width: 100%;
+  }
+}

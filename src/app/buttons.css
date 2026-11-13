@@ -1,0 +1,106 @@
+/* Button feel, in the style of whatsapp.com: a smooth colour flip on hover (the colours are set in globals.css),
+   an arrow icon that glides forward, a small grow on hover, a press-in on click that springs back, and a soft wash
+   that spreads from the exact point of the click (ButtonFx adds the .fx-ring). Header links only flip colour. */
+.pill,
+.nl-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    background-color 0.33s ease,
+    color 0.33s ease,
+    border-color 0.33s ease,
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Arrow icon on the call-to-action buttons (replaces the typed arrows in the labels). */
+.pill.solid::after,
+.pill.inked::after,
+.pill.go::after,
+.pr-ctas .pill::after,
+.cta-b .pill::after,
+.nl-btn::after {
+  content: "";
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: transform 0.33s var(--ease-out);
+}
+.menu-btn::after,
+.pill[aria-pressed]::after {
+  content: none;
+}
+
+@media (hover: hover) {
+  .pill:not([disabled]):hover,
+  .nl-btn:not([disabled]):hover {
+    transform: scale(1.04);
+  }
+  .pill:not([disabled]):hover::after,
+  .nl-btn:not([disabled]):hover::after {
+    transform: translateX(4px);
+  }
+  /* Header links stay put so the bar does not jitter: colour flip only. */
+  .nav-links .pill:hover,
+  .nav .menu-btn:hover {
+    transform: none;
+  }
+}
+.pill:not([disabled]):active,
+.nl-btn:not([disabled]):active {
+  transform: scale(0.94);
+  transition-duration: 0.1s;
+}
+
+/* Click wash (added by ButtonFx): a soft disc that spreads from the tap point. */
+.fx-ring {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: currentColor;
+  opacity: 0.28;
+  transform: scale(0.05);
+  animation: fx-ring 0.6s ease-out forwards;
+}
+@keyframes fx-ring {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill,
+  .nl-btn {
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      border-color 0.2s;
+  }
+  .pill:not([disabled]):hover,
+  .nl-btn:not([disabled]):hover,
+  .pill:not([disabled]):active,
+  .nl-btn:not([disabled]):active,
+  .pill:not([disabled]):hover::after,
+  .nl-btn:not([disabled]):hover::after {
+    transform: none;
+  }
+  .fx-ring {
+    display: none;
+  }
+}
+
+/* On dark surfaces the yellow button flips to white (a dark fill would vanish into the background). */
+.pr-ctas .pill.solid:hover,
+.on-dark .pill.solid:hover,
+.band-ink .pill.solid:hover,
+.footer .pill.solid:hover,
+.nav[data-theme="dark"] .pill.solid:hover {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
+}

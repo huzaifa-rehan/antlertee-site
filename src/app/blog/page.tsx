@@ -30,7 +30,7 @@ export default function BlogPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }} />
-      <section className="page-hero dark" data-nav="dark" aria-labelledby="blog-title">
+      <section className="page-hero dark" data-nav="dark" data-snap="fit" aria-labelledby="blog-title">
         <p className="br kicker">Blog</p>
         <h1 id="blog-title" className="h-page" style={{ marginTop: 18 }}>
           Made
@@ -40,7 +40,7 @@ export default function BlogPage() {
         <p className="lead">Plain-English guides for brands making their first, or next, drop: what to send, what to ask and what to expect.</p>
       </section>
 
-      <section className="section" data-nav="light" aria-label="All posts">
+      <section className="section" data-nav="light" data-snap="edge" aria-label="All posts">
         <ul className="blog-grid">
           {posts.map((p, i) => (
             <Reveal as="li" key={p.slug} delay={(i % 2) * 0.08} className="blog-item">

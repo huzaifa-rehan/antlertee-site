@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Picture } from "@/components/Picture";
 import type { ImageId } from "@/content/images";
-import { categories, type Category, type Product } from "@/content/products";
+import { categories, products as allProducts, type Category, type Product } from "@/content/products";
 import { usePrefersReducedMotion } from "@/lib/use-media";
 import { ProductView } from "./ProductView";
 import { BayContents, GARMENT_SPRING, GarmentArt, HANGER_SIZES, Wardrobe, bayStyle } from "./Wardrobe";
@@ -160,24 +160,37 @@ export function Rack({ products, basePath, showFilters = false, title, intro, ti
 
   const Title = titleAs;
   const offRail = (slug: string) => view === slug || flight?.slug === slug;
+  const head = (
+    <div className="rack-head">
+      <Title id="rack-title" className={titleAs === "h1" ? "h-page" : "h-section"}>
+        {title}
+        <span className="dot">.</span>
+      </Title>
+      <p>{intro}</p>
+    </div>
+  );
 
+  // The full wardrobe (products page): an ink hero band over the paper wardrobe. The home rack is one screen: the wardrobe
+  // on ink with a yellow foot band holding the link to the full rack.
   return (
     <section
       ref={sectionRef}
-      className={`rack${showFilters ? " rack-full" : ""}`}
+      className={showFilters ? "rack rack-full" : "rack rack-feature fit-bands"}
       id="rack"
-      data-nav="light"
+      data-snap={showFilters ? "edge" : "fit"}
       aria-labelledby="rack-title"
     >
-      <div className="rack-head">
-        <Title id="rack-title" className={titleAs === "h1" ? "h-page" : "h-section"}>
-          {title}
-          <span className="dot">.</span>
-        </Title>
-        <p>{intro}</p>
-      </div>
-
       <LayoutGroup>
+        {showFilters && (
+          <div className="band band-ink rack-hero" data-nav="dark">
+            {head}
+          </div>
+        )}
+        <div
+          className={showFilters ? "band band-paper rack-body" : "band band-ink band-main rack-body"}
+          data-nav={showFilters ? "light" : "dark"}
+        >
+          {!showFilters && head}
         <Wardrobe
           cornice={
             showFilters ? (
@@ -265,12 +278,17 @@ export function Rack({ products, basePath, showFilters = false, title, intro, ti
           </p>
         )}
 
+        </div>
+
         {!showFilters && (
-          <p className="rack-more">
-            <Link className="pill lg" href="/products/">
-              See the full rack →
+          <div className="band band-yellow band-foot rack-more" data-nav="yellow">
+            <p className="br">
+              {allProducts.length} bases across {categories.length} categories
+            </p>
+            <Link className="pill inked lg" href="/products/">
+              Show me everything
             </Link>
-          </p>
+          </div>
         )}
 
         {viewed && (

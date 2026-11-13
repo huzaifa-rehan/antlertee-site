@@ -62,21 +62,23 @@ const rows: { label: string; body: React.ReactNode }[] = [
 
 export default function CreditsPage() {
   return (
-    <section className="page-hero" data-nav="light" aria-labelledby="credits-title" style={{ paddingBottom: "14vh" }}>
-      <p className="br kicker">Credits</p>
-      <h1 id="credits-title" className="h-page" style={{ marginTop: 18 }}>
-        Credits<span className="dot">.</span>
-      </h1>
-      <dl className="mt-[8vh] max-w-[900px]">
-        {rows.map((r) => (
-          <div key={r.label} className="grid gap-3 border-t-[1.5px] border-ink/15 py-7 md:grid-cols-[220px_1fr]">
-            <dt className="br text-mute">{r.label}</dt>
-            <dd className="grid gap-3 text-[17px] leading-relaxed [&_a]:underline [&_a]:decoration-yellow [&_a]:decoration-2 [&_a]:underline-offset-4">
-              {r.body}
-            </dd>
-          </div>
-        ))}
-      </dl>
+    <section className="cr fit-bands" data-snap="fit" aria-labelledby="credits-title">
+      <div className="band band-ink band-head is-first" data-nav="dark">
+        <h1 id="credits-title" className="h-section cr-title">
+          Credits<span className="dot">.</span>
+        </h1>
+        <p className="br kicker">Model, typefaces, photos, software</p>
+      </div>
+      <div className="band band-paper band-main" data-nav="light">
+        <dl className="cr-list">
+          {rows.map((r) => (
+            <div key={r.label}>
+              <dt className="br">{r.label}</dt>
+              <dd>{r.body}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </section>
   );
 }

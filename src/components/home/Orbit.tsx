@@ -135,8 +135,10 @@ export function Orbit() {
     });
     ro.observe(stage);
 
+    // Pinned frame: only while the screen is tall enough to hold it (a landscape phone scrolls the section normally).
     let st: ScrollTrigger | null = null;
-    if (!reduce) {
+    const tallEnough = window.matchMedia("(min-height: 520px)");
+    const createPin = () => {
       st = ScrollTrigger.create({
         trigger: section,
         start: "top top",
@@ -154,10 +156,25 @@ export function Orbit() {
       stRef.current = st;
       ScrollTrigger.sort();
       ScrollTrigger.refresh();
+    };
+    const dropPin = () => {
+      st?.kill();
+      st = null;
+      stRef.current = null;
+      ScrollTrigger.refresh();
+    };
+    const onTall = () => {
+      if (tallEnough.matches && !st) createPin();
+      else if (!tallEnough.matches && st) dropPin();
+    };
+    if (!reduce) {
+      if (tallEnough.matches) createPin();
+      tallEnough.addEventListener("change", onTall);
     }
 
     return () => {
       ro.disconnect();
+      tallEnough.removeEventListener("change", onTall);
       st?.kill();
       stRef.current = null;
       gsap.killTweensOf(orbitState);
@@ -187,14 +204,20 @@ export function Orbit() {
         ref={sectionRef}
         className="orbit"
         id="collections"
-        data-nav="light"
+        data-snap="edge"
         aria-roledescription="carousel"
         aria-labelledby="orbit-title"
       >
         <h2 id="orbit-title" className="sr-only">
           Collections
         </h2>
-        <div className="orbit-in">
+        <div className="band band-yellow band-head" data-nav="yellow">
+          <p className="br kicker">Collections</p>
+          <p className="br" aria-hidden="true">
+            {pad(active + 1)} / {pad(N)}
+          </p>
+        </div>
+        <div className="orbit-in" data-nav="light">
           <div className="stage" ref={stageRef}>
             <svg aria-hidden="true">
               <circle ref={bandRef} fill="none" strokeLinecap="round" opacity={0.28} />
@@ -213,9 +236,6 @@ export function Orbit() {
             ))}
           </div>
           <div className="o-copy">
-            <p className="br" style={{ color: "var(--mute)" }}>
-              {pad(active + 1)} / {pad(N)} &nbsp;·&nbsp; Collections
-            </p>
             <div className="o-titles" aria-live="polite">
               {collections.map((c, i) => (
                 <div
@@ -268,8 +288,8 @@ export function Orbit() {
                 ))}
               </div>
               {current && (
-                <Link className="pill" href={`/products/${current.slug}/`}>
-                  View {current.t2.toLowerCase()} →
+                <Link className="pill go" href={`/products/${current.slug}/`}>
+                  Show me the {current.t2.toLowerCase()}
                 </Link>
               )}
             </div>

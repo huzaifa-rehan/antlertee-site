@@ -1,13 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import { Gabarito, Onest } from "next/font/google";
 import "./globals.css";
+import "./buttons.css";
 import { Loader, loaderBootScript } from "@/components/Loader";
+import { ButtonFx } from "@/components/ButtonFx";
+import { MediaOverridesProvider } from "@/components/MediaOverrides";
 import { Providers } from "@/components/Providers";
+import { SiteChrome } from "@/components/SiteChrome";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteNav } from "@/components/SiteNav";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { brand } from "@/content/site";
 import { metadataBase } from "@/lib/meta";
+import { getMediaOverrides } from "@/server/media";
 
 const gabarito = Gabarito({
   subsets: ["latin"],
@@ -40,7 +45,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Admin image replacements: one cached read, revalidated on change (see src/server/media.ts).
+  const overrides = await getMediaOverrides();
   return (
     <html lang="en" className={`${gabarito.variable} ${onest.variable}`} suppressHydrationWarning>
       <head>
@@ -51,13 +58,23 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Skip to content
         </a>
         <Providers>
-          <Loader />
-          <SmoothScroll />
-          <SiteNav />
-          <main id="main" tabIndex={-1}>
-            {children}
-          </main>
-          <SiteFooter />
+          <MediaOverridesProvider value={overrides}>
+            <SiteChrome
+              before={
+                <>
+                  <Loader />
+                  <SmoothScroll />
+                  <SiteNav />
+                  <ButtonFx />
+                </>
+              }
+              after={<SiteFooter />}
+            >
+              <main id="main" tabIndex={-1}>
+                {children}
+              </main>
+            </SiteChrome>
+          </MediaOverridesProvider>
         </Providers>
       </body>
     </html>

@@ -9,3 +9,7 @@ npm-debug.log*
 
 .vercel
 .env*
+!.env.example
+
+# local database and uploads (development without cloud accounts)
+.data/

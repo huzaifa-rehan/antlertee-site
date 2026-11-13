@@ -4,10 +4,11 @@ import { ProductDetails } from "@/components/product/ProductDetails";
 import { TurnStage } from "@/components/product/TurnStage";
 import { BayContents, GarmentArt, Wardrobe, bayStyle } from "@/components/product/Wardrobe";
 import { QuoteCta } from "@/components/QuoteCta";
-import { getImage } from "@/content/images";
 import { getProduct, products } from "@/content/products";
 import { SITE_URL, brand } from "@/content/site";
+import { absoluteUrl } from "@/lib/media";
 import { pageMeta } from "@/lib/meta";
+import { slotImage } from "@/server/media";
 
 interface Params {
   params: Promise<{ slug: string }>;
@@ -23,12 +24,12 @@ export async function generateMetadata({ params }: Params) {
   const { slug } = await params;
   const product = getProduct(slug);
   if (!product) return {};
-  const img = getImage(product.image);
+  const img = await slotImage(product.image);
   return pageMeta({
     title: `${product.name} (${product.sub}): private-label manufacturing`,
     description: `${product.description} MOQ ${product.moq}.`,
     path: `/products/${product.slug}/`,
-    image: { url: `/img/${img.id}-${img.widths.at(-1)}.webp`, width: img.width, height: img.height, alt: img.alt },
+    image: { url: img.src, width: img.width, height: img.height, alt: img.alt },
   });
 }
 
@@ -43,33 +44,42 @@ export default async function ProductPage({ params }: Params) {
     name: product.name,
     description: product.description,
     category: product.category,
-    image: `${SITE_URL}/img/${product.image}-${getImage(product.image).widths.at(-1)}.webp`,
+    image: absoluteUrl((await slotImage(product.image)).src, SITE_URL),
     manufacturer: { "@type": "Organization", name: brand.name },
   };
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <article className="pdp pdp-page" data-nav="light" aria-labelledby="product-title">
-        <div className="pv-media">
-          <div className="pv-frame">
-            <TurnStage image={product.image} alt={`${product.name}, ${product.sub}`} priority />
+      <article className="pdp-page fit-bands" data-snap="fit" aria-labelledby="product-title">
+        <div className="band band-ink band-head is-first" data-nav="dark">
+          <Link className="pill" href="/products/">
+            ← All products
+          </Link>
+          <p className="br kicker">
+            {product.category} &nbsp;/&nbsp; {product.sub}
+          </p>
+        </div>
+        <div className="band band-paper band-main" data-nav="light">
+          <div className="pdp">
+            <div className="pv-media">
+              <div className="pv-frame">
+                <TurnStage image={product.image} alt={`${product.name}, ${product.sub}`} priority />
+              </div>
+            </div>
+            <ProductDetails product={product} headingId="product-title" headingLevel="h1" inBands />
           </div>
         </div>
-        <ProductDetails
-          product={product}
-          headingId="product-title"
-          headingLevel="h1"
-          back={
-            <Link className="pill" href="/products/">
-              ← All products
-            </Link>
-          }
-        />
+        <div className="band band-yellow band-foot pdp-buy" data-nav="yellow">
+          <p className="pdp-price">Price on request</p>
+          <Link className="pill inked lg" href={`/contact/?product=${product.slug}`}>
+            Request a quote
+          </Link>
+        </div>
       </article>
 
       {related.length > 0 && (
-        <section className="pdp-more" data-nav="light" aria-labelledby="related-title">
+        <section className="pdp-more fit band-ink" data-nav="dark" data-snap="fit" aria-labelledby="related-title">
           <Wardrobe
             cornice={
               <h2 id="related-title" className="wd-engrave">

@@ -1,37 +1,93 @@
 "use client";
 
+import { useState, type InputHTMLAttributes } from "react";
 import {
+  colourPresets,
   compositionSuggestions,
   fabricTypes,
   fits,
   garmentTypes,
-  gsmPresets,
+  isBottom,
   MAX_COLOURWAYS,
   moqMin,
   neckLabels,
   newColourwayId,
+  sizeRanges,
   sizes as allSizes,
+  startingPoints,
   washes,
+  weights,
   type SizeId,
+  type StartingPoint,
 } from "@/content/techpack";
-import type { InputHTMLAttributes } from "react";
 import { facts } from "@/content/site";
-import { Check, Choices, FieldError, type StepProps } from "./fields";
-import { colourwayName, colourwayTotal, grandTotal, isUnderMoq, todayIso } from "./logic";
+import { Check, Choices, FieldError, Help, Optional, Required, type StepProps } from "./fields";
+import {
+  colourwayName,
+  colourwayTotal,
+  fabricLabel,
+  fitLabel,
+  grandTotal,
+  isEvenSplit,
+  isUnderMoq,
+  rebalance,
+  todayIso,
+  washLabel,
+  weightLabel,
+  withEvenSplit,
+} from "./logic";
 
 const desc = (...ids: (string | false | undefined)[]) => ids.filter(Boolean).join(" ") || undefined;
 
-/* 1. Garment type */
-export function GarmentStep({ data, set, errors }: StepProps) {
+/* 1. Start: a popular starting point, or the garment type from scratch */
+export function GarmentStep({ data, set, update, errors }: StepProps) {
+  const chosen = startingPoints.find((p) => p.id === data.preset);
+  const apply = (id: string) => {
+    const sp: StartingPoint | undefined = startingPoints.find((p) => p.id === id);
+    if (!sp) return;
+    update((d) => ({
+      ...d,
+      preset: sp.id,
+      garment: sp.garment,
+      fit: sp.fit,
+      dropShoulder: sp.dropShoulder,
+      fabricType: sp.fabricType,
+      gsm: sp.gsm,
+      wash: sp.wash,
+    }));
+  };
+
   return (
     <div className="tp-stack">
+      <div className="tp-stack tp-stack-tight">
+        <Choices
+          legend="Start from a popular style"
+          name="tp-preset"
+          idPrefix="tp-preset"
+          options={startingPoints}
+          value={data.preset}
+          onChange={(v) => v && apply(v)}
+          hint="It fills in the fit and fabric for you. You can change anything on the next steps."
+        />
+        {chosen && (
+          <p className="tp-note" role="status">
+            Filled in for you: {[chosen.fit && `${fitLabel(data).toLowerCase()} fit`, fabricLabel(data).toLowerCase(), weightLabel(data) && `${weightLabel(data).toLowerCase()} weight`, data.wash !== "none" && data.wash !== "unsure" && washLabel(data).toLowerCase()].filter(Boolean).join(", ")}.
+            Change any of it later.
+          </p>
+        )}
+      </div>
+
       <Choices
-        legend="What are we making?"
+        legend={
+          <>
+            Or start from scratch: what are we making? <Required />
+          </>
+        }
         name="tp-garment"
         idPrefix="tp-garment"
         options={garmentTypes}
         value={data.garment}
-        onChange={(v) => set("garment", v)}
+        onChange={(v) => update((d) => ({ ...d, garment: v, preset: v === d.garment ? d.preset : "" }))}
         error={errors.garment}
       />
       {data.garment === "other" && (
@@ -44,6 +100,7 @@ export function GarmentStep({ data, set, errors }: StepProps) {
             value={data.garmentOther}
             onChange={(e) => set("garmentOther", e.target.value)}
             placeholder="e.g. polo, tank top, tracksuit set"
+            enterKeyHint="next"
             aria-invalid={errors.garmentOther ? true : undefined}
             aria-describedby={desc(errors.garmentOther && "tp-garment-other-err")}
           />
@@ -52,7 +109,7 @@ export function GarmentStep({ data, set, errors }: StepProps) {
       )}
       <div className="field">
         <label htmlFor="tp-style">
-          Style name <span className="opt">(optional)</span>
+          Give it a name <Optional />
         </label>
         <input
           id="tp-style"
@@ -61,37 +118,50 @@ export function GarmentStep({ data, set, errors }: StepProps) {
           value={data.styleName}
           onChange={(e) => set("styleName", e.target.value)}
           placeholder="e.g. Core heavyweight hoodie"
+          enterKeyHint="next"
           aria-describedby="tp-style-hint"
         />
         <p className="hint" id="tp-style-hint">
-          Goes at the top of your tech pack.
+          Just so we can find it later. It goes at the top of your tech pack.
         </p>
       </div>
     </div>
   );
 }
 
-/* 2. Fit and silhouette */
+/* 2. Fit */
 export function FitStep({ data, set }: StepProps) {
+  const bottom = isBottom(data.garment);
   return (
     <div className="tp-stack">
-      <Choices legend="Fit" name="tp-fit" idPrefix="tp-fit" options={fits} value={data.fit} onChange={(v) => set("fit", v)} variant="chip" optional />
       <Choices
-        legend="Drop shoulder?"
-        name="tp-drop"
-        idPrefix="tp-drop"
-        options={[
-          { id: "yes", label: "Yes, drop shoulder" },
-          { id: "no", label: "No, set-in shoulder" },
-        ]}
-        value={data.dropShoulder}
-        onChange={(v) => set("dropShoulder", v)}
-        variant="chip"
+        legend="How loose should it be?"
+        name="tp-fit"
+        idPrefix="tp-fit"
+        options={fits.filter((f) => !(bottom && f.topsOnly))}
+        value={data.fit}
+        onChange={(v) => set("fit", v)}
         optional
+        notSure
       />
+      {!bottom && (
+        <Choices
+          legend="Where does the shoulder seam sit?"
+          name="tp-drop"
+          idPrefix="tp-drop"
+          options={[
+            { id: "yes", label: "Dropped shoulder", hint: "The seam sits down the arm. A relaxed look." },
+            { id: "no", label: "Standard shoulder", hint: "The seam sits at the top of the arm. A neat look." },
+          ]}
+          value={data.dropShoulder}
+          onChange={(v) => set("dropShoulder", v)}
+          optional
+          notSure
+        />
+      )}
       <div className="field">
         <label htmlFor="tp-length">
-          Length and fit notes <span className="opt">(optional)</span>
+          Anything about length or sleeves? <Optional />
         </label>
         <textarea
           id="tp-length"
@@ -99,11 +169,11 @@ export function FitStep({ data, set }: StepProps) {
           rows={3}
           value={data.lengthNotes}
           onChange={(e) => set("lengthNotes", e.target.value)}
-          placeholder="e.g. body length 72 cm on size M, cropped 5 cm, wide sleeves, ribbed cuffs"
+          placeholder="e.g. a bit cropped, wide sleeves, ribbed cuffs"
           aria-describedby="tp-length-hint"
         />
         <p className="hint" id="tp-length-hint">
-          Have a size spec or a reference garment? Mention it here and send it with the tech pack.
+          Have a garment that fits you well? Say so. You can send us a photo or its measurements and we will copy it.
         </p>
       </div>
     </div>
@@ -111,78 +181,115 @@ export function FitStep({ data, set }: StepProps) {
 }
 
 /* 3. Fabric and wash */
-export function FabricStep({ data, set, errors }: StepProps) {
+export function FabricStep({ data, set }: StepProps) {
+  const customWeight = data.gsm !== "" && !weights.some((w) => w.gsm === data.gsm);
   return (
     <div className="tp-stack">
       <Choices
-        legend="Fabric type"
+        legend="What kind of fabric?"
         name="tp-fabric"
         idPrefix="tp-fabric"
         options={fabricTypes}
         value={data.fabricType}
         onChange={(v) => set("fabricType", v)}
         optional
+        notSure
       />
-      <div className="tp-two">
-        <div className="field">
-          <label htmlFor="tp-composition">
-            Composition <span className="opt">(optional)</span>
-          </label>
-          <input
-            id="tp-composition"
-            className="input"
-            type="text"
-            list="tp-composition-list"
-            value={data.composition}
-            onChange={(e) => set("composition", e.target.value)}
-            placeholder="e.g. 100% cotton"
-            autoComplete="off"
-          />
-          <datalist id="tp-composition-list">
-            {compositionSuggestions.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
-        </div>
-        <fieldset className="tp-fieldset" aria-describedby={desc("tp-gsm-hint", errors.gsm && "tp-gsm-err")}>
-          <legend className="tp-legend">
-            Weight (GSM) <span className="opt">(optional)</span>
-          </legend>
-          <div className="tp-chips">
-            {gsmPresets.map((g) => (
-              <label key={g} className="tp-chip">
-                <input type="radio" name="tp-gsm-preset" value={g} checked={data.gsm === g} onChange={() => set("gsm", g)} />
-                <span className="tp-card-t">{g === "450" ? "450+" : g}</span>
-              </label>
-            ))}
-          </div>
-          <div className="tp-inline">
-            <label htmlFor="tp-gsm">Or type it</label>
-            <input
-              id="tp-gsm"
-              className="input tp-gsm-input"
-              type="text"
-              inputMode="numeric"
-              value={data.gsm}
-              onChange={(e) => set("gsm", e.target.value.replace(/[^\d]/g, "").slice(0, 4))}
-              placeholder="e.g. 320"
-              aria-invalid={errors.gsm ? true : undefined}
-              aria-describedby={desc("tp-gsm-hint", errors.gsm && "tp-gsm-err")}
-            />
-            <span aria-hidden="true">GSM</span>
-          </div>
-          <p className="hint" id="tp-gsm-hint">
-            Not sure? Leave it blank and we will suggest a weight for the garment.
+
+      <div className="tp-stack tp-stack-tight">
+        <Choices
+          legend="How heavy should it feel?"
+          name="tp-weight"
+          idPrefix="tp-weight"
+          options={weights.map((w) => ({ id: w.gsm, label: w.label, hint: w.hint }))}
+          value={data.gsm}
+          onChange={(v) => set("gsm", v)}
+          optional
+          notSure
+        />
+        <Help summary="What is GSM?">
+          <p>
+            GSM means grams per square metre. It is a number for how heavy a fabric is. A higher number is thicker and warmer. Light
+            tees are around 180, heavyweight hoodies are 450 or more. If you do not know, pick a feel above or leave it as it is.
           </p>
-          <FieldError id="tp-gsm-err" message={errors.gsm} />
-        </fieldset>
+        </Help>
+        <div className="tp-inline">
+          <label htmlFor="tp-gsm">Know the exact weight? Type it</label>
+          <input
+            id="tp-gsm"
+            className="input tp-gsm-input"
+            type="text"
+            inputMode="numeric"
+            value={customWeight ? data.gsm : ""}
+            onChange={(e) => set("gsm", e.target.value.replace(/[^\d]/g, "").slice(0, 4))}
+            placeholder="e.g. 300"
+            enterKeyHint="next"
+          />
+          <span aria-hidden="true">GSM</span>
+        </div>
       </div>
-      <Choices legend="Wash" name="tp-wash" idPrefix="tp-wash" options={washes} value={data.wash} onChange={(v) => set("wash", v)} variant="chip" />
+
+      <div className="field">
+        <label htmlFor="tp-composition">
+          What is it made of? <Optional />
+        </label>
+        <input
+          id="tp-composition"
+          className="input"
+          type="text"
+          list="tp-composition-list"
+          value={data.composition}
+          onChange={(e) => set("composition", e.target.value)}
+          placeholder="e.g. 100% cotton"
+          autoComplete="off"
+          enterKeyHint="next"
+          aria-describedby="tp-composition-hint"
+        />
+        <datalist id="tp-composition-list">
+          {compositionSuggestions.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
+        <div className="tp-chips" role="group" aria-label="Common choices">
+          {compositionSuggestions.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="tp-chip tp-chip-btn"
+              aria-pressed={data.composition === c}
+              onClick={() => set("composition", data.composition === c ? "" : c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <p className="hint" id="tp-composition-hint">
+          Not sure? Leave it empty and we will suggest one for this garment.
+        </p>
+      </div>
+
+      <div className="tp-stack tp-stack-tight">
+        <Choices
+          legend="Do you want a wash?"
+          name="tp-wash"
+          idPrefix="tp-wash"
+          options={washes}
+          value={data.wash}
+          onChange={(v) => v && set("wash", v)}
+          optional
+        />
+        <Help summary="What is a wash?">
+          <p>
+            A wash is a treatment after sewing that fades, softens or ages the garment so it looks lived in. Choose no wash for a clean,
+            plain finish. Not sure? Pick not sure and we will show you options.
+          </p>
+        </Help>
+      </div>
     </div>
   );
 }
 
-/* 4. Colourways */
+/* 4. Colours */
 export function ColoursStep({ data, update }: StepProps) {
   const setCw = (id: string, patch: Partial<{ name: string; hex: string; pantone: string }>) =>
     update((d) => ({ ...d, colourways: d.colourways.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
@@ -190,30 +297,62 @@ export function ColoursStep({ data, update }: StepProps) {
     update((d) => {
       const quantities = { ...d.quantities };
       delete quantities[id];
-      return { ...d, colourways: d.colourways.filter((c) => c.id !== id), quantities };
+      return rebalance(d, { ...d, colourways: d.colourways.filter((c) => c.id !== id), quantities });
     });
   const add = () =>
     update((d) =>
-      d.colourways.length >= MAX_COLOURWAYS ? d : { ...d, colourways: [...d.colourways, { id: newColourwayId(), name: "", hex: "#e9e5de", pantone: "" }] },
+      d.colourways.length >= MAX_COLOURWAYS
+        ? d
+        : rebalance(d, { ...d, colourways: [...d.colourways, { id: newColourwayId(), name: "", hex: "#e9e5de", pantone: "" }] }),
     );
+  const pickPreset = (id: string, name: string, hex: string) => {
+    const known = colourPresets.some((p) => p.name === data.colourways.find((c) => c.id === id)?.name);
+    const current = data.colourways.find((c) => c.id === id);
+    setCw(id, { hex, name: !current?.name.trim() || known ? name : current.name });
+  };
   const full = data.colourways.length >= MAX_COLOURWAYS;
+  const washed = data.wash !== "none" && data.wash !== "unsure";
 
   return (
     <div className="tp-stack">
       <p className="tp-lead">
-        Up to {MAX_COLOURWAYS} colourways. Pick a colour to show us roughly, and add the Pantone code if you have one; we match the
-        Pantone for dye and print.
+        Tap a colour, or use the colour picker for any shade. {washed && "You chose a wash, so pick the colour before it is washed. The wash fades it."}
       </p>
       <ol className="tp-cws">
         {data.colourways.map((c, i) => (
           <li key={c.id} className="tp-cw">
             <fieldset className="tp-fieldset">
               <legend className="tp-legend">
-                <span className="tp-swatch" style={{ background: c.hex }} aria-hidden="true" /> Colourway {i + 1}
+                <span className="tp-swatch" style={{ background: c.hex }} aria-hidden="true" /> Colour {i + 1}
               </legend>
+              <div className="tp-swatches" role="group" aria-label={`Quick colours for colour ${i + 1}`}>
+                {colourPresets.map((p) => {
+                  const on = c.hex.toLowerCase() === p.hex.toLowerCase();
+                  return (
+                    <button
+                      key={p.name}
+                      type="button"
+                      className="tp-sw"
+                      style={{ background: p.hex }}
+                      aria-label={p.name}
+                      title={p.name}
+                      aria-pressed={on}
+                      onClick={() => pickPreset(c.id, p.name, p.hex)}
+                    >
+                      {on && (
+                        <svg viewBox="0 0 12 10" aria-hidden="true">
+                          <path d="M1 5l3.5 3.5L11 1.5" />
+                        </svg>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
               <div className="tp-cw-grid">
                 <div className="field">
-                  <label htmlFor={`tp-cw-${c.id}-name`}>Name</label>
+                  <label htmlFor={`tp-cw-${c.id}-name`}>
+                    Colour name <Optional />
+                  </label>
                   <input
                     id={`tp-cw-${c.id}-name`}
                     className="input"
@@ -221,18 +360,25 @@ export function ColoursStep({ data, update }: StepProps) {
                     value={c.name}
                     onChange={(e) => setCw(c.id, { name: e.target.value })}
                     placeholder={i === 0 ? "e.g. Washed black" : "e.g. Bone"}
+                    enterKeyHint="next"
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor={`tp-cw-${c.id}-hex`}>Colour</label>
+                  <label htmlFor={`tp-cw-${c.id}-hex`}>Or pick any colour</label>
                   <span className="tp-colour">
                     <input id={`tp-cw-${c.id}-hex`} type="color" value={c.hex} onChange={(e) => setCw(c.id, { hex: e.target.value })} />
                     <span aria-hidden="true">{c.hex.toUpperCase()}</span>
                   </span>
                 </div>
+              </div>
+              <Help summary="Have a colour code? Pantone">
+                <p>
+                  A Pantone code is a number that names an exact colour, like 19-4005 TCX. It is optional. If you do not have one, just
+                  pick a colour above and we match it from there, or from a photo you send us.
+                </p>
                 <div className="field">
                   <label htmlFor={`tp-cw-${c.id}-pantone`}>
-                    Pantone <span className="opt">(optional)</span>
+                    Pantone code <Optional />
                   </label>
                   <input
                     id={`tp-cw-${c.id}-pantone`}
@@ -242,12 +388,13 @@ export function ColoursStep({ data, update }: StepProps) {
                     onChange={(e) => setCw(c.id, { pantone: e.target.value })}
                     placeholder="e.g. 19-4005 TCX"
                     autoComplete="off"
+                    enterKeyHint="next"
                   />
                 </div>
-              </div>
+              </Help>
               {data.colourways.length > 1 && (
                 <button type="button" className="tp-link" onClick={() => remove(c.id)}>
-                  Remove {colourwayName(c, i)}
+                  Remove {colourwayName(c, i).toLowerCase()}
                 </button>
               )}
             </fieldset>
@@ -255,37 +402,96 @@ export function ColoursStep({ data, update }: StepProps) {
         ))}
       </ol>
       <div className="tp-inline">
-        <button type="button" className="pill" onClick={add} disabled={full} aria-describedby={full ? "tp-cw-full" : undefined}>
-          + Add a colourway
+        <button type="button" className="pill" onClick={add} disabled={full} aria-describedby="tp-cw-hint">
+          + Add another colour
         </button>
-        {full && (
-          <p className="hint" id="tp-cw-full">
-            That is the maximum of {MAX_COLOURWAYS}. Need more? Add a note at the end.
-          </p>
-        )}
+        <p className="hint" id="tp-cw-hint">
+          {full
+            ? `That is the most we can take here, ${MAX_COLOURWAYS} colours. Need more? Add a note on the last step.`
+            : "Only if you want the same garment in more than one colour."}
+        </p>
       </div>
     </div>
   );
 }
 
-/* 6. Sizes and quantities */
-export function SizesStep({ data, set, update, errors }: StepProps) {
+/* 6. How many: one rough total, split across sizes for you */
+export function SizesStep({ data, update, errors }: StepProps) {
+  const total = grandTotal(data);
+  const even = isEvenSplit(data);
+  const [gridOpen, setGridOpen] = useState(total > 0 && !even);
+  const colours = data.colourways.length;
+  const sizeCount = data.sizes.length;
+
+  const setTotal = (raw: string) => {
+    const n = Number.parseInt(raw.replace(/[^\d]/g, "").slice(0, 6), 10);
+    update((d) => withEvenSplit(d, Number.isFinite(n) ? n : 0));
+  };
+  const chooseSizes = (next: SizeId[]) =>
+    update((d) => rebalance(d, { ...d, sizes: allSizes.filter((s) => next.includes(s)) }));
   const toggleSize = (s: SizeId) =>
-    set(
-      "sizes",
-      data.sizes.includes(s) ? data.sizes.filter((x) => x !== s) : allSizes.filter((x) => x === s || data.sizes.includes(x)),
-    );
+    chooseSizes(data.sizes.includes(s) ? data.sizes.filter((x) => x !== s) : [...data.sizes, s]);
   const setQty = (cw: string, s: SizeId, v: string) =>
     update((d) => ({ ...d, quantities: { ...d.quantities, [cw]: { ...d.quantities[cw], [s]: v.replace(/[^\d]/g, "").slice(0, 6) } } }));
-  const total = grandTotal(data);
+
+  const under = data.colourways.map((c, i) => ({ c, i, t: colourwayTotal(data, c.id) })).filter((x) => isUnderMoq(x.t));
+  const per = sizeCount > 0 && total > 0 ? Math.round(total / (colours * sizeCount)) : 0;
 
   return (
     <div className="tp-stack">
+      <div className="field tp-total-field">
+        <label htmlFor="tp-qty-total" className="tp-big-label">
+          How many pieces in total? <Required />
+        </label>
+        <input
+          id="tp-qty-total"
+          className="input tp-big-input"
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          placeholder="e.g. 300"
+          enterKeyHint="next"
+          value={total > 0 ? String(total) : ""}
+          onChange={(e) => setTotal(e.target.value)}
+          aria-invalid={errors.quantities ? true : undefined}
+          aria-describedby={desc("tp-qty-hint", errors.quantities && "tp-qty-err")}
+        />
+        <p className="hint" id="tp-qty-hint">
+          A rough number is fine. It can change after sampling. A sample is one test piece we make for you to check first.
+          {moqMin > 0 && ` Our usual minimum is ${facts.moqLong}.`}
+        </p>
+        <FieldError id="tp-qty-err" message={errors.quantities} />
+      </div>
+
+      <div aria-live="polite">
+        {under.length > 0 && (
+          <p className="tp-note">
+            {colours === 1 ? "That is" : `${under.map((u) => colourwayName(u.c, u.i)).join(", ")} ${under.length === 1 ? "is" : "are"}`} under our usual
+            minimum of {facts.moqLong}. You can still send it. We will tell you what is possible.
+          </p>
+        )}
+      </div>
+
       <fieldset className="tp-fieldset">
-        <legend className="tp-legend">Size range</legend>
-        <div className="tp-chips">
+        <legend className="tp-legend">
+          Which sizes? <Optional />
+        </legend>
+        <div className="tp-chips" role="group" aria-label="Size ranges">
+          {sizeRanges.map((r) => {
+            const on = r.sizes.length === data.sizes.length && r.sizes.every((s, k) => s === data.sizes[k]);
+            return (
+              <button key={r.id} type="button" className="tp-chip tp-chip-btn" aria-pressed={on} onClick={() => chooseSizes(r.sizes)}>
+                {r.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="hint" style={{ margin: "10px 0 8px" }}>
+          Not sure? Keep S to XL. We will suggest a split that fits your customers.
+        </p>
+        <div className="tp-chips" role="group" aria-label="Pick sizes one by one">
           {allSizes.map((s) => (
-            <label key={s} className="tp-chip">
+            <label key={s} className="tp-chip tp-chip-sm">
               <input type="checkbox" checked={data.sizes.includes(s)} onChange={() => toggleSize(s)} />
               <span className="tp-card-t">{s}</span>
             </label>
@@ -294,92 +500,100 @@ export function SizesStep({ data, set, update, errors }: StepProps) {
       </fieldset>
 
       {data.sizes.length === 0 ? (
-        <p className="tp-empty">Choose at least one size to enter quantities.</p>
+        <p className="tp-empty">Choose at least one size so we can split your pieces.</p>
       ) : (
-        <div className="tp-qty" aria-describedby={errors.quantities ? "tp-qty-err" : undefined}>
-          {data.colourways.map((c, i) => {
-            const t = colourwayTotal(data, c.id);
-            const under = isUnderMoq(t);
-            return (
-              <fieldset key={c.id} className="tp-qty-row" aria-describedby={under ? `tp-qty-${c.id}-moq` : undefined}>
-                <legend className="tp-legend">
-                  <span className="tp-swatch" style={{ background: c.hex }} aria-hidden="true" /> {colourwayName(c, i)}
-                  <span className="tp-qty-total" aria-live="polite">
-                    {t} pcs
-                  </span>
-                </legend>
-                <div className="tp-qty-grid">
-                  {data.sizes.map((s, k) => (
-                    <div key={s} className="tp-qty-cell">
-                      <label htmlFor={i === 0 && k === 0 ? "tp-qty-first" : `tp-qty-${c.id}-${s}`}>
-                        {s}
-                        <span className="sr-only-focusable">, {colourwayName(c, i)}</span>
-                      </label>
-                      <input
-                        id={i === 0 && k === 0 ? "tp-qty-first" : `tp-qty-${c.id}-${s}`}
-                        className="input"
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        placeholder="0"
-                        value={data.quantities[c.id]?.[s] ?? ""}
-                        onChange={(e) => setQty(c.id, s, e.target.value)}
-                        aria-invalid={errors.quantities ? true : undefined}
-                      />
+        <div className="tp-stack tp-stack-tight">
+          <p className="tp-total">
+            <span>Total</span>
+            <strong aria-live="polite">{total} pcs</strong>
+          </p>
+          {total > 0 && even && (
+            <p className="hint tp-split-note">
+              Split evenly: about {per} of each size{colours > 1 ? `, in each of your ${colours} colours` : ""}.
+            </p>
+          )}
+          {total > 0 && !even && (
+            <div className="tp-inline">
+              <button type="button" className="pill" onClick={() => update((d) => withEvenSplit(d, grandTotal(d)))}>
+                Split evenly across sizes
+              </button>
+              <p className="hint">Your sizes are set by hand. This spreads the same total evenly again.</p>
+            </div>
+          )}
+          <details className="tp-help" open={gridOpen} onToggle={(e) => setGridOpen(e.currentTarget.open)}>
+            <summary>Set each size yourself</summary>
+            <div className="tp-help-body">
+              <p>Optional. Use this if you already know your split, for example more M than XL.</p>
+              <div className="tp-qty">
+                {data.colourways.map((c, i) => (
+                  <fieldset key={c.id} className="tp-qty-row">
+                    <legend className="tp-legend">
+                      <span className="tp-swatch" style={{ background: c.hex }} aria-hidden="true" /> {colourwayName(c, i)}
+                      <span className="tp-qty-total" aria-live="polite">
+                        {colourwayTotal(data, c.id)} pcs
+                      </span>
+                    </legend>
+                    <div className="tp-qty-grid">
+                      {data.sizes.map((s) => (
+                        <div key={s} className="tp-qty-cell">
+                          <label htmlFor={`tp-qty-${c.id}-${s}`}>
+                            {s}
+                            <span className="sr-only-focusable">, {colourwayName(c, i)}</span>
+                          </label>
+                          <input
+                            id={`tp-qty-${c.id}-${s}`}
+                            className="input"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            placeholder="0"
+                            value={data.quantities[c.id]?.[s] ?? ""}
+                            onChange={(e) => setQty(c.id, s, e.target.value)}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {under && (
-                  <p className="tp-note" id={`tp-qty-${c.id}-moq`}>
-                    This colourway is under our standard MOQ of {facts.moqLong}. Send it anyway and we will tell you what is possible.
-                  </p>
-                )}
-              </fieldset>
-            );
-          })}
+                  </fieldset>
+                ))}
+              </div>
+            </div>
+          </details>
         </div>
-      )}
-      <FieldError id="tp-qty-err" message={errors.quantities} />
-      <p className="tp-total">
-        <span>Total</span>
-        <strong aria-live="polite">{total} pcs</strong>
-      </p>
-      {moqMin > 0 && (
-        <p className="hint">
-          Standard MOQ is {facts.moqLong}. Quantities can change after sampling.
-        </p>
       )}
     </div>
   );
 }
 
-/* 7. Labels, trims, packing, deadline */
+/* 7. Finishing: labels, trims, packing, timing */
 export function LabelsStep({ data, set, errors }: StepProps) {
   return (
     <div className="tp-stack">
       <Choices
-        legend="Neck label"
+        legend="Do you want a label at the neck?"
         name="tp-neck"
         idPrefix="tp-neck"
         options={neckLabels}
         value={data.neckLabel}
         onChange={(v) => set("neckLabel", v)}
-        variant="chip"
         optional
+        notSure
       />
       <fieldset className="tp-fieldset">
-        <legend className="tp-legend">Trims and packing</legend>
+        <legend className="tp-legend">
+          Extras and packing <Optional />
+        </legend>
+        <p className="tp-hint">Tick what you want. The usual ones are ticked already. Not sure? Leave them as they are.</p>
         <div className="tp-checks">
-          <Check id="tp-care" label="Care label" checked={data.careLabel} onChange={(v) => set("careLabel", v)} hint="Wash care and composition" />
-          <Check id="tp-hang" label="Hang tag" checked={data.hangTag} onChange={(v) => set("hangTag", v)} hint="Branded swing tag" />
-          <Check id="tp-poly" label="Polybag" checked={data.polybag} onChange={(v) => set("polybag", v)} hint="Each piece bagged" />
-          <Check id="tp-pack" label="Custom packaging" checked={data.customPackaging} onChange={(v) => set("customPackaging", v)} hint="Boxes, mailers, stickers" />
+          <Check id="tp-care" label="Care label" checked={data.careLabel} onChange={(v) => set("careLabel", v)} hint="A small tag with wash instructions" />
+          <Check id="tp-hang" label="Hang tag" checked={data.hangTag} onChange={(v) => set("hangTag", v)} hint="A card tag on a string, with your brand on it" />
+          <Check id="tp-poly" label="Polybag" checked={data.polybag} onChange={(v) => set("polybag", v)} hint="Each piece sealed in its own bag" />
+          <Check id="tp-pack" label="Custom packaging" checked={data.customPackaging} onChange={(v) => set("customPackaging", v)} hint="Boxes, mailers or stickers with your brand" />
         </div>
       </fieldset>
       {data.customPackaging && (
         <div className="field">
           <label htmlFor="tp-pack-notes">
-            Packaging notes <span className="opt">(optional)</span>
+            What packaging? <Optional />
           </label>
           <input
             id="tp-pack-notes"
@@ -388,13 +602,14 @@ export function LabelsStep({ data, set, errors }: StepProps) {
             value={data.packagingNotes}
             onChange={(e) => set("packagingNotes", e.target.value)}
             placeholder="e.g. printed mailer box, tissue, sticker seal"
+            enterKeyHint="next"
           />
         </div>
       )}
       <div className="tp-two">
         <div className="field">
           <label htmlFor="tp-deadline">
-            Deadline <span className="opt">(optional)</span>
+            When do you need it? <Optional />
           </label>
           <input
             id="tp-deadline"
@@ -407,13 +622,13 @@ export function LabelsStep({ data, set, errors }: StepProps) {
             aria-describedby={desc("tp-deadline-hint", errors.deadline && "tp-deadline-err")}
           />
           <p className="hint" id="tp-deadline-hint">
-            When you need the goods. Typical turnaround is {facts.turnaround}.
+            No fixed date? Leave it empty. Typical turnaround is {facts.turnaround}.
           </p>
           <FieldError id="tp-deadline-err" message={errors.deadline} />
         </div>
         <div className="field">
           <label htmlFor="tp-market">
-            Target market <span className="opt">(optional)</span>
+            Where will you sell it? <Optional />
           </label>
           <input
             id="tp-market"
@@ -422,8 +637,9 @@ export function LabelsStep({ data, set, errors }: StepProps) {
             list="tp-market-list"
             value={data.market}
             onChange={(e) => set("market", e.target.value)}
-            placeholder="Where it sells or ships"
+            placeholder="e.g. UK, USA, Pakistan"
             autoComplete="off"
+            enterKeyHint="next"
           />
           <datalist id="tp-market-list">
             {[...facts.exportMarkets, "Pakistan"].map((m) => (
@@ -438,10 +654,11 @@ export function LabelsStep({ data, set, errors }: StepProps) {
 
 /* 8. Contact fields (shown on the review step) */
 export function ContactFields({ data, set, errors }: StepProps) {
-  const input = (key: "name" | "brand" | "email" | "whatsapp", label: string, props: InputHTMLAttributes<HTMLInputElement>, opt?: boolean) => (
+  const input = (key: "name" | "brand" | "email" | "whatsapp", label: string, props: InputHTMLAttributes<HTMLInputElement>, tag?: "opt" | "req", hint?: string) => (
     <div className="field">
       <label htmlFor={`tp-${key}`}>
-        {label} {opt && <span className="opt">(optional)</span>}
+        {label} {tag === "opt" && <Optional />}
+        {tag === "req" && <Required />}
       </label>
       <input
         id={`tp-${key}`}
@@ -449,12 +666,12 @@ export function ContactFields({ data, set, errors }: StepProps) {
         value={data[key]}
         onChange={(e) => set(key, e.target.value)}
         aria-invalid={errors[key] ? true : undefined}
-        aria-describedby={desc(key === "email" && "tp-email-hint", errors[key] && `tp-${key}-err`)}
+        aria-describedby={desc(hint && `tp-${key}-hint`, errors[key] && `tp-${key}-err`)}
         {...props}
       />
-      {key === "email" && (
-        <p className="hint" id="tp-email-hint">
-          Email or WhatsApp: at least one, so we can reply.
+      {hint && (
+        <p className="hint" id={`tp-${key}-hint`}>
+          {hint}
         </p>
       )}
       <FieldError id={`tp-${key}-err`} message={errors[key]} />
@@ -462,15 +679,22 @@ export function ContactFields({ data, set, errors }: StepProps) {
   );
   return (
     <fieldset className="tp-fieldset">
-      <legend className="tp-legend tp-legend-lg">Your details</legend>
+      <legend className="tp-legend tp-legend-lg">Where should we reply?</legend>
+      <p className="tp-hint">Give us an email, a WhatsApp number, or both. We need at least one way to reach you.</p>
       <div className="form-grid">
-        {input("name", "Your name", { type: "text", autoComplete: "name" })}
-        {input("brand", "Brand name", { type: "text", autoComplete: "organization" }, true)}
-        {input("email", "Email", { type: "email", autoComplete: "email", inputMode: "email" })}
-        {input("whatsapp", "WhatsApp number", { type: "tel", autoComplete: "tel", inputMode: "tel", placeholder: "+44 7700 900123" })}
+        {input("name", "Your name", { type: "text", autoComplete: "name", enterKeyHint: "next" }, "req")}
+        {input("brand", "Brand name", { type: "text", autoComplete: "organization", enterKeyHint: "next" }, "opt")}
+        {input("email", "Email", { type: "email", autoComplete: "email", inputMode: "email", enterKeyHint: "next" })}
+        {input(
+          "whatsapp",
+          "WhatsApp number",
+          { type: "tel", autoComplete: "tel", inputMode: "tel", placeholder: "+44 7700 900123", enterKeyHint: "done" },
+          undefined,
+          "Include your country code, like +44.",
+        )}
         <div className="field full">
           <label htmlFor="tp-notes">
-            Anything else? <span className="opt">(optional)</span>
+            Anything else we should know? <Optional />
           </label>
           <textarea
             id="tp-notes"
@@ -478,7 +702,7 @@ export function ContactFields({ data, set, errors }: StepProps) {
             rows={3}
             value={data.notes}
             onChange={(e) => set("notes", e.target.value)}
-            placeholder="Sampling first, references, target price, questions"
+            placeholder="e.g. I would like a sample first, or my target price is..."
           />
         </div>
       </div>

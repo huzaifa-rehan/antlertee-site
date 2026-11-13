@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import { Picture } from "@/components/Picture";
 import { QuoteCta } from "@/components/QuoteCta";
 import { formatPostDate, getPost, posts, type Block } from "@/content/blog";
-import { getImage } from "@/content/images";
 import { SITE_URL, brand } from "@/content/site";
+import { absoluteUrl } from "@/lib/media";
 import { pageMeta } from "@/lib/meta";
+import { slotImage } from "@/server/media";
 
 interface Params {
   params: Promise<{ slug: string }>;
@@ -21,12 +22,12 @@ export async function generateMetadata({ params }: Params) {
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) return {};
-  const img = getImage(post.image);
+  const img = await slotImage(post.image);
   return pageMeta({
     title: post.title,
     description: post.summary,
     path: `/blog/${post.slug}/`,
-    image: { url: `/img/${img.id}-${img.widths.at(-1)}.webp`, width: img.width, height: img.height, alt: img.alt },
+    image: { url: img.src, width: img.width, height: img.height, alt: img.alt },
   });
 }
 
@@ -62,14 +63,14 @@ export default async function PostPage({ params }: Params) {
   const post = getPost(slug);
   if (!post) notFound();
   const more = posts.filter((p) => p.slug !== post.slug).slice(0, 2);
-  const img = getImage(post.image);
+  const img = await slotImage(post.image);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
     description: post.summary,
     datePublished: post.date,
-    image: `${SITE_URL}/img/${img.id}-${img.widths.at(-1)}.webp`,
+    image: absoluteUrl(img.src, SITE_URL),
     mainEntityOfPage: `${SITE_URL}/blog/${post.slug}/`,
     author: { "@type": "Organization", name: brand.name },
     publisher: { "@type": "Organization", name: brand.name },
@@ -79,7 +80,7 @@ export default async function PostPage({ params }: Params) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article aria-labelledby="post-title">
-        <header className="page-hero dark post-hero" data-nav="dark">
+        <header className="page-hero dark post-hero" data-nav="dark" data-snap="fit">
           <p className="br kicker">
             <Link href="/blog/">Blog</Link> &nbsp;/&nbsp; {post.tag}
           </p>
@@ -92,7 +93,7 @@ export default async function PostPage({ params }: Params) {
           </p>
         </header>
 
-        <div className="post-body-wrap" data-nav="light">
+        <div className="post-body-wrap" data-nav="light" data-snap="edge">
           <figure className="post-cover">
             <Picture id={post.image} sizes="(max-width: 860px) 92vw, 900px" priority />
           </figure>
@@ -100,11 +101,11 @@ export default async function PostPage({ params }: Params) {
         </div>
       </article>
 
-      <section className="section post-more" data-nav="light" aria-labelledby="more-title">
+      <section className="post-more fit band-ink" data-nav="dark" data-snap="fit" aria-labelledby="more-title">
         <h2 id="more-title" className="br kicker">
           Keep reading
         </h2>
-        <ul className="blog-grid" style={{ marginTop: 28 }}>
+        <ul className="blog-grid" style={{ marginTop: "clamp(12px, 3svh, 28px)" }}>
           {more.map((p) => (
             <li key={p.slug} className="blog-item">
               <Link className="blog-card" href={`/blog/${p.slug}/`}>

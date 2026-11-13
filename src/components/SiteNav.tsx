@@ -88,7 +88,7 @@ export function SiteNav() {
         </nav>
         <div className="nav-right">
           <Link className="pill solid" href="/contact/">
-            Get a quote
+            Get my price
           </Link>
           <button
             type="button"

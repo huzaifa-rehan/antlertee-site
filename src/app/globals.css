@@ -121,11 +121,11 @@ html.lenis body {
   line-height: 0.85;
 }
 .h-section {
-  font: 900 clamp(48px, 8vw, 140px) / 0.86 var(--font-display);
+  font: 900 clamp(44px, min(8vw, 13svh), 140px) / 0.86 var(--font-display);
   letter-spacing: var(--track);
 }
 .h-page {
-  font: 900 clamp(56px, 11vw, 200px) / 0.84 var(--font-display);
+  font: 900 clamp(52px, min(11vw, 17svh), 200px) / 0.84 var(--font-display);
   letter-spacing: var(--track);
 }
 .pill {
@@ -198,6 +198,108 @@ html.lenis body {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   FIT + BANDS: the layout system behind "every section fits one screen".
+   - .fit        one full-screen section (min-height 100svh), content centred and sized from the space left.
+   - .band       a colour zone. Stack bands inside a .fit-bands section: a head band (label strip), a main band that
+                 takes the remaining height, and an optional foot band (a stat, a link, a call to action).
+   - .band-ink / .band-paper / .band-yellow set the colours; every band carries its own data-nav so the header
+                 flips colour exactly at the band edge.
+   - data-snap   marks a section start for the soft stop in src/lib/soft-stop.ts:
+                 "fit" = settle here and stop a fast scroll here; "edge" = stop a fast scroll here only
+                 (pinned or tall sections, which must never be snapped inside).
+   Sizes use svh (small viewport height) so phone address bars never cut content, and svh-aware clamp()s so a
+   short laptop screen drops sizes and spacing step by step instead of overflowing.
+   ========================================================================== */
+:root {
+  /* Space the fixed header takes: at the very top of a page (big logo) and once it has compacted after scrolling. */
+  --nav-clear-top: calc(clamp(76px, 7vw, 108px) + 36px);
+  --nav-clear: calc(clamp(48px, 4vw, 62px) + 28px);
+  /* Vertical breathing room of a section, from the screen height. */
+  --fit-pad: clamp(14px, 3.4svh, 48px);
+  --fit-gap: clamp(10px, 2.4svh, 28px);
+}
+.fit,
+.fit-bands {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+}
+.fit {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--nav-clear) var(--pad) var(--fit-pad);
+}
+.fit-bands {
+  display: flex;
+  flex-direction: column;
+}
+.band {
+  position: relative;
+}
+.band-ink {
+  background: var(--ink);
+  color: var(--paper);
+}
+.band-paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+.band-yellow {
+  background: var(--yellow);
+  color: var(--ink);
+}
+/* Head band: the label strip. Its top padding is the header zone, so the nav sits on the band's own colour. */
+.band-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 28px;
+  padding: var(--nav-clear) var(--pad) clamp(10px, 2svh, 18px);
+}
+.band-head .br {
+  letter-spacing: 0.08em;
+}
+.band-head.is-first {
+  padding-top: var(--nav-clear-top);
+}
+.band-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--fit-pad) var(--pad);
+}
+.band-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: clamp(10px, 2.2svh, 22px) var(--pad);
+}
+.band-ink .kicker::before,
+.band-ink .eyebrow::before {
+  background: var(--yellow);
+}
+.band-ink .kicker,
+.band-ink .eyebrow {
+  color: var(--paper);
+}
+/* Focus ring: yellow with an ink halo is the default (ink and paper); on yellow it flips to ink with a yellow halo. */
+.band-yellow :focus-visible {
+  outline-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--yellow);
+}
+.band-ink .pill:hover {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
 }
 
 /* ---------- loader ---------- */
@@ -703,30 +805,31 @@ html.seen .loader {
   }
 }
 
-/* ---------- statement + marquee ---------- */
-.statement {
-  padding: clamp(96px, 16vh, 180px) var(--pad);
-  max-width: 1400px;
-}
-.statement p {
-  font: 800 clamp(30px, 4.6vw, 76px) / 1.04 var(--font-display);
-  letter-spacing: var(--track);
-}
-/* The small label line under the statement (the .statement p rule above would otherwise make it headline-sized). */
-.statement .meta {
+/* ---------- statement + marquee: ink label strip, paper statement, yellow marquee (one screen) ---------- */
+.statement .band-head .meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 28px;
-  margin-top: clamp(24px, 4vh, 40px);
-  color: var(--mute);
-  font: 600 13px / 1.3 var(--font-body);
-  letter-spacing: 0.06em;
+  gap: 6px 26px;
+  color: var(--mute-inv);
+  font: 600 12px / 1.3 var(--font-body);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.statement .band-main {
+  padding-block: clamp(18px, 5svh, 72px);
+}
+.statement-text {
+  max-width: 1400px;
+  font: 800 clamp(26px, min(4.9vw, 9.2svh), 76px) / 1.04 var(--font-display);
+  letter-spacing: var(--track);
 }
 .marquee {
   background: var(--yellow);
   overflow: hidden;
   border-block: 1.5px solid var(--ink);
+}
+.statement .marquee {
+  border-bottom: 0;
 }
 .marquee-track {
   display: flex;
@@ -756,13 +859,14 @@ html.seen .loader {
   overflow: hidden;
 }
 .work-in {
+  --work-extra: 0px; /* phones add the stacked heading copy and the swipe hint */
   min-height: 100vh;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4vh;
-  padding: 116px 0 48px;
+  gap: clamp(10px, 3.4svh, 40px);
+  padding: var(--nav-clear) 0 clamp(14px, 3.6svh, 40px);
 }
 .work-head {
   display: flex;
@@ -787,7 +891,8 @@ html.seen .loader {
 .card {
   position: relative;
   display: block;
-  width: clamp(240px, 24vw, 360px);
+  /* Width follows the height left under the heading, so the pinned frame always fits the screen. */
+  width: clamp(150px, min(calc((100svh - var(--nav-clear) - 26svh - 20px - var(--work-extra)) * 0.75), 24vw), 360px);
   aspect-ratio: 3/4;
   border-radius: 18px;
   overflow: hidden;
@@ -865,32 +970,48 @@ html.seen .loader {
   display: block;
 }
 @media (max-width: 859.98px) {
+  .work-in {
+    --work-extra: 96px;
+  }
   .work-head {
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
   }
   .card {
-    width: min(76vw, 320px);
+    width: clamp(150px, min(calc((100svh - var(--nav-clear) - 26svh - 20px - var(--work-extra)) * 0.75), 76vw), 320px);
+  }
+}
+/* Short screens: the text on each card is secondary to the photo. */
+@media (max-height: 560px) {
+  .card p {
+    display: none;
+  }
+  .work-head p {
+    display: none;
   }
 }
 
-/* ---------- collections orbit ---------- */
+/* ---------- collections orbit: yellow label strip over the paper stage (pinned frame = one screen) ---------- */
 .orbit {
   position: relative;
   height: 100vh;
   height: 100svh;
-  min-height: 600px;
   overflow: hidden;
   background: var(--paper);
+  display: flex;
+  flex-direction: column;
 }
 .orbit-in {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1.15fr 1fr;
 }
 .stage {
   position: relative;
+  min-height: 0;
 }
 .stage svg {
   position: absolute;
@@ -903,7 +1024,8 @@ html.seen .loader {
   position: absolute;
   left: 0;
   top: 0;
-  width: clamp(190px, 25vw, 390px);
+  /* Height of the card follows the stage height (screen minus the label strip), so it never outgrows the frame. */
+  width: clamp(130px, min(25vw, calc((100svh - var(--nav-clear) - 56px) * 0.5)), 390px);
   aspect-ratio: 3/4;
   border-radius: 22px;
   overflow: hidden;
@@ -917,13 +1039,16 @@ html.seen .loader {
   object-fit: cover;
 }
 .o-copy {
+  --t1: clamp(28px, min(5vw, 8.2svh), 84px);
+  --t2: clamp(34px, min(6.4vw, 10.4svh), 110px);
   align-self: center;
+  min-width: 0;
   padding: 0 var(--pad) 0 2vw;
 }
 .o-titles {
   position: relative;
-  height: clamp(110px, 15vw, 230px);
-  margin: 14px 0 24px;
+  height: calc((var(--t1) + var(--t2)) * 1.08 + 4px);
+  margin: 0 0 clamp(8px, 2.6svh, 26px);
 }
 .o-title {
   position: absolute;
@@ -935,27 +1060,27 @@ html.seen .loader {
   letter-spacing: var(--track);
 }
 .o-title .t1 {
-  font: 400 clamp(36px, 5vw, 84px) var(--font-display);
+  font: 400 var(--t1) var(--font-display);
 }
 .o-title .t2 {
-  font: 900 clamp(44px, 6.4vw, 110px) var(--font-display);
+  font: 900 var(--t2) var(--font-display);
 }
 .o-card {
   position: relative;
-  min-height: 150px;
+  min-height: clamp(70px, 14svh, 150px);
 }
 .o-spec {
   position: absolute;
   inset: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px 24px;
+  gap: clamp(6px, 1.8svh, 14px) 24px;
   align-content: start;
   margin: 0;
 }
 .o-spec div {
   border-top: 1px solid var(--line);
-  padding-top: 10px;
+  padding-top: clamp(5px, 1.2svh, 10px);
 }
 .o-spec dt {
   font: 600 11px/1 var(--font-body);
@@ -964,16 +1089,16 @@ html.seen .loader {
   color: var(--mute);
 }
 .o-spec dd {
-  margin: 6px 0 0;
-  font: 600 16px/1.3 var(--font-body);
+  margin: 5px 0 0;
+  font: 600 clamp(13px, 2.3svh, 16px) / 1.3 var(--font-body);
 }
 .o-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-top: 20px;
+  gap: 8px 16px;
+  margin-top: clamp(8px, 2svh, 20px);
 }
 .o-dots {
   display: flex;
@@ -1003,29 +1128,37 @@ html.seen .loader {
 @media (max-width: 859.98px) {
   .orbit-in {
     grid-template-columns: 1fr;
-    grid-template-rows: 52% 48%;
+    grid-template-rows: 46% 54%;
   }
   .o-item {
-    width: clamp(168px, 46vw, 230px);
+    width: clamp(120px, min(46vw, calc((100svh - var(--nav-clear) - 56px) * 0.3)), 230px);
   }
   .o-copy {
     padding: 0 var(--pad);
     align-self: start;
   }
   .o-spec dd {
-    font-size: 14px;
+    font-size: clamp(12.5px, 2svh, 14px);
+  }
+}
+/* Landscape phones: too short to pin the frame (Orbit.tsx lets the section scroll), so it takes the room it needs. */
+@media (max-height: 519.98px) {
+  .orbit {
+    height: auto;
+    min-height: 100svh;
+  }
+  .orbit-in {
+    min-height: 420px;
   }
 }
 
 /* ---------- rack: the wardrobe ---------- */
-.rack {
-  padding: 16vh var(--pad) 18vh;
-}
+/* Home: ink screen with the wardrobe, yellow foot band with the link. Products page: ink hero band, paper wardrobe. */
 .rack-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 20px;
+  gap: 8px 20px;
   flex-wrap: wrap;
 }
 .rack-head p {
@@ -1033,8 +1166,82 @@ html.seen .loader {
   color: #5f5a54;
   line-height: 1.5;
 }
+.rack .rack-head {
+  color: inherit;
+}
+.rack-feature .rack-head p,
+.rack-hero .rack-head p {
+  color: #c9c4bb;
+}
+.rack-feature .rack-body {
+  padding-top: var(--nav-clear);
+}
+.rack-feature .rack-head .h-section {
+  font-size: clamp(36px, min(6.4vw, 9.4svh), 120px);
+}
+.rack-feature .wd {
+  margin-top: clamp(10px, 2.6svh, 36px);
+}
+/* Hangers shrink with the screen height so head, wardrobe and foot band share one screen. */
+.rack-feature .wd,
+.pdp-more .wd {
+  --gw: clamp(96px, min(176px, calc((100svh - var(--nav-clear) - 400px) * 0.75)), 176px);
+}
+/* Short phones: the head's side note and the hanger sub-labels make room. */
+@media (max-width: 859.98px) and (max-height: 700px) {
+  .rack-feature .rack-head p,
+  .rack-feature .wd-lbl small {
+    display: none;
+  }
+}
+/* Short laptop screens: slimmer woodwork, so the hangers can stay a readable size. */
+@media (min-width: 860px) and (max-height: 780px) {
+  .rack-feature .wd {
+    --frame: 10px;
+  }
+  .rack-feature .wd-cornice {
+    padding: 8px 20px 10px;
+  }
+  .rack-feature .wd-engrave {
+    padding: 8px 4px;
+  }
+  .rack-feature .wd-shelf {
+    height: 20px;
+  }
+  .rack-feature .wd-plinth {
+    height: 10px;
+  }
+  .rack-feature .wd-list {
+    padding-block: 10px 14px;
+  }
+  .rack-feature .wd-lbl {
+    margin-top: 6px;
+  }
+  .rack-feature .rack-head p {
+    display: none;
+  }
+  .rack-more {
+    padding-block: 8px;
+  }
+}
+.rack-hero {
+  padding: var(--nav-clear-top) var(--pad) clamp(16px, 4svh, 44px);
+}
+.rack-hero .h-page {
+  font-size: clamp(52px, min(9vw, 15svh), 160px);
+}
+.rack-full .rack-body {
+  padding: clamp(18px, 4svh, 48px) var(--pad) clamp(40px, 8svh, 96px);
+}
+.rack-full .wd {
+  margin-top: 0;
+}
 .rack-more {
-  margin-top: 48px;
+  gap: 8px 24px;
+}
+.rack-more p {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 /* Wood is CSS only: layered gradients plus an inline SVG grain (fractal noise stretched along the grain). */
@@ -1047,7 +1254,7 @@ html.seen .loader {
   --brass: linear-gradient(180deg, #f7e6b8 0%, #dcb96f 42%, #b48b44 78%, #9c763a 100%);
   position: relative;
   max-width: 1480px;
-  margin: clamp(36px, 7vh, 72px) auto 0;
+  margin: clamp(18px, 4svh, 56px) auto 0;
 }
 .wd-cornice {
   position: relative;
@@ -1468,11 +1675,17 @@ html.seen .loader {
   .wd {
     --gw: 164px;
   }
+  .rack-feature .wd,
+  .pdp-more .wd {
+    --gw: clamp(96px, min(164px, calc((100svh - var(--nav-clear) - 400px) * 0.75)), 164px);
+  }
 }
 /* Tablet and phone: every compartment is a full-width, swipeable rail. */
 @media (max-width: 859.98px) {
-  .wd {
-    --gw: 27vw;
+  .wd,
+  .rack-feature .wd,
+  .pdp-more .wd {
+    --gw: clamp(92px, min(27vw, calc((100svh - var(--nav-clear) - 420px) * 0.75)), 200px);
     --frame: 12px;
     --gap: 10px;
   }
@@ -1489,8 +1702,10 @@ html.seen .loader {
   }
 }
 @media (max-width: 600px) {
-  .wd {
-    --gw: 34vw;
+  .wd,
+  .rack-feature .wd,
+  .pdp-more .wd {
+    --gw: clamp(92px, min(34vw, calc((100svh - var(--nav-clear) - 420px) * 0.75)), 200px);
     --frame: 8px;
     --gap: 8px;
   }
@@ -1567,12 +1782,58 @@ html.seen .loader {
   align-items: center;
   gap: 5vw;
 }
-.pdp-page {
-  min-height: 100svh;
-  padding: 110px var(--pad) 60px;
+/* Product page: ink strip (back link, category), paper stage (photo + details), yellow strip (quote button). */
+.pdp-page .pdp {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(20px, 5vw, 80px);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
-.pdp-more {
-  padding: 0 var(--pad) 14vh;
+.pdp-page .pv-media {
+  padding-bottom: 0;
+}
+.pdp-page .pv-frame {
+  width: min(100%, calc((100svh - var(--nav-clear-top) - 225px) * 0.75), 520px);
+}
+.pdp-info-bands {
+  max-width: 720px;
+}
+.pdp-info-bands .pdp-name {
+  margin: 0 0 clamp(6px, 1.6svh, 16px);
+  font-size: clamp(26px, min(4.2vw, 7svh), 64px);
+}
+.pdp-info-bands .pdp-desc {
+  font-size: clamp(13.5px, 2.5svh, 16px);
+  line-height: 1.5;
+}
+.pdp-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 12px 28px;
+  margin-top: clamp(8px, 2.2svh, 22px);
+}
+.pdp-info-bands .spec-list {
+  margin: 0;
+  font-size: clamp(12.5px, 2.2svh, 14.5px);
+}
+.pdp-info-bands .spec-list dt,
+.pdp-info-bands .spec-list dd {
+  padding-block: clamp(4px, 1svh, 10px);
+}
+.pdp-info-bands .chips {
+  margin: 0;
+}
+.pdp-info-bands .chips li {
+  padding: clamp(4px, 0.9svh, 8px) 11px;
+  font-size: clamp(12px, 2svh, 13px);
+}
+.pdp-buy .pdp-price {
+  color: var(--ink);
+  font-weight: 600;
+}
+.pdp-more.fit {
+  background: var(--ink);
 }
 .pdp-info {
   max-width: 560px;
@@ -1758,77 +2019,149 @@ html.seen .loader {
   .pv-esc {
     display: none;
   }
-  .pdp-page {
-    padding-top: 124px;
-  }
   .pdp-info {
     max-width: 640px;
   }
+  .pdp-page .pdp {
+    gap: clamp(10px, 2.4svh, 28px);
+  }
+  .pdp-page .pv-frame {
+    width: min(100%, calc((100svh - var(--nav-clear-top) - 400px) * 0.75), 300px);
+    min-width: 96px;
+    align-self: center;
+  }
+  .pdp-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Tablet portrait: photo and details side by side, as on desktop. */
+@media (min-width: 600px) and (max-width: 859.98px) {
+  .pdp-page .pdp {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 5vw;
+  }
+  .pdp-page .pv-frame {
+    width: min(100%, calc((100svh - var(--nav-clear-top) - 225px) * 0.75), 420px);
+    min-width: 0;
+  }
+}
+/* Phones: the separate finishes list gives way (the finishes also sit as one row in the spec list) so the photo, details and quote button stay on one screen. */
+.spec-finishes {
+  display: none;
+}
+@media (max-width: 599.98px) {
+  .pdp-finishes {
+    display: none;
+  }
+  .spec-list .spec-finishes {
+    display: contents;
+  }
+  .pdp-page .pdp {
+    gap: clamp(8px, 1.6svh, 20px);
+  }
+  .pdp-page .pv-frame {
+    width: min(100%, calc((100svh - var(--nav-clear-top) - 520px) * 0.75), 300px);
+  }
+  .pdp-info-bands .pdp-desc {
+    font-size: 13.5px;
+    line-height: 1.42;
+  }
+  .pdp-info-bands .spec-list dt,
+  .pdp-info-bands .spec-list dd {
+    padding-block: 3px;
+  }
 }
 
-/* ---------- process + proof ---------- */
-.process {
-  background: var(--ink);
-  color: var(--paper);
-  padding: 16vh var(--pad);
+/* ---------- process + proof: ink steps, paper proof strip (one screen) ---------- */
+.process-main {
+  padding-top: var(--nav-clear);
+}
+.process-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px 20px;
+  flex-wrap: wrap;
 }
 .steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
-  margin: 8vh 0 0;
+  margin: clamp(14px, 5svh, 64px) 0 0;
   padding: 0;
   list-style: none;
 }
 .step {
   border-top: 1.5px solid var(--line-inv);
-  padding-top: 18px;
+  padding-top: clamp(8px, 2svh, 18px);
 }
 .step b {
   display: block;
-  font: 900 clamp(54px, 6vw, 96px) / 1 var(--font-display);
+  font: 900 clamp(34px, min(6vw, 9svh), 96px) / 1 var(--font-display);
   letter-spacing: var(--track);
   color: var(--yellow);
 }
 .step h3 {
-  font: 800 22px/1.1 var(--font-display);
-  margin: 14px 0 8px;
+  font: 800 clamp(17px, 3svh, 22px) / 1.1 var(--font-display);
+  margin: clamp(6px, 1.6svh, 14px) 0 clamp(4px, 1svh, 8px);
   letter-spacing: -0.02em;
 }
 .step p {
   color: #a9a39b;
   line-height: 1.5;
-  font-size: 14.5px;
+  font-size: clamp(13px, 2.3svh, 14.5px);
+}
+.process-proof {
+  padding: clamp(12px, 2.6svh, 28px) var(--pad);
 }
 .proof {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
-  margin: 12vh 0 0;
+  margin: 0;
 }
 .proof div {
-  border-top: 1.5px solid var(--line-inv);
-  padding-top: 16px;
+  border-top: 1.5px solid var(--line);
+  padding-top: clamp(6px, 1.6svh, 14px);
 }
 .proof dt {
-  font: 900 clamp(36px, 4vw, 64px) / 1 var(--font-display);
+  font: 900 clamp(28px, min(4vw, 7svh), 64px) / 1 var(--font-display);
   letter-spacing: var(--track);
 }
 .proof dd {
-  margin: 6px 0 0;
-  color: #a9a39b;
-  font-size: 14px;
+  margin: 4px 0 0;
+  color: var(--mute);
+  font-size: clamp(12.5px, 2.2svh, 14px);
 }
 @media (max-width: 859.98px) {
-  .steps,
-  .proof {
-    grid-template-columns: 1fr 1fr;
-    row-gap: 32px;
-  }
-}
-@media (max-width: 420px) {
   .steps {
     grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: clamp(52px, 16vw, 84px) minmax(0, 1fr);
+    column-gap: 10px;
+    padding: clamp(6px, 1.4svh, 12px) 0;
+  }
+  .step b {
+    grid-row: 1 / span 2;
+    font-size: clamp(30px, 8vw, 56px);
+  }
+  .step h3 {
+    margin: 0 0 3px;
+  }
+  .proof {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 14px;
+  }
+}
+/* Short phones: the four step titles stay, the one-line details give way (they are in full on the process page). */
+@media (max-width: 859.98px) and (max-height: 700px) {
+  .step p {
+    display: none;
   }
 }
 
@@ -1836,18 +2169,17 @@ html.seen .loader {
 .cta-b {
   background: var(--yellow);
   color: var(--ink);
-  padding: 18vh var(--pad);
 }
 .cta-b h2 {
-  font: 900 clamp(52px, 10vw, 180px) / 0.86 var(--font-display);
+  font: 900 clamp(46px, min(10vw, 21svh), 180px) / 0.86 var(--font-display);
   letter-spacing: var(--track);
-  margin-top: 14px;
+  margin-top: clamp(8px, 2svh, 14px);
 }
 .cta-b .row {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 40px;
+  margin-top: clamp(16px, 4.4svh, 40px);
 }
 .cta-b :focus-visible {
   outline-color: var(--ink);
@@ -1856,7 +2188,7 @@ html.seen .loader {
 .footer {
   background: var(--ink);
   color: var(--mute-inv);
-  padding: clamp(64px, 12vh, 120px) var(--pad) 28px;
+  padding: clamp(28px, 7svh, 120px) var(--pad) clamp(10px, 2.4svh, 28px);
 }
 .ft-in {
   max-width: 1240px;
@@ -1867,17 +2199,17 @@ html.seen .loader {
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
   gap: 32px clamp(32px, 6vw, 96px);
   align-items: center;
-  padding-bottom: clamp(48px, 9vh, 96px);
+  padding-bottom: clamp(20px, 5svh, 96px);
   border-bottom: 1px solid var(--line-inv);
 }
 .ft-title {
-  font: 900 clamp(48px, 8vw, 112px) / 0.9 var(--font-display);
+  font: 900 clamp(40px, min(8vw, 14svh), 112px) / 0.9 var(--font-display);
   letter-spacing: -0.04em;
   text-transform: uppercase;
   color: var(--paper);
 }
 .ft-lede {
-  margin-top: 24px;
+  margin-top: clamp(10px, 2.4svh, 24px);
   max-width: 44ch;
   line-height: 1.55;
   color: var(--paper);
@@ -1924,7 +2256,7 @@ html.seen .loader {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr)) minmax(0, 1.3fr);
   gap: 40px clamp(24px, 4vw, 64px);
-  padding: clamp(40px, 7vh, 72px) 0;
+  padding: clamp(20px, 4.4svh, 72px) 0;
   border-bottom: 1px solid var(--line-inv);
 }
 .footer .wm {
@@ -1935,7 +2267,7 @@ html.seen .loader {
   width: clamp(96px, 9vw, 130px);
 }
 .ft-about {
-  margin-top: 22px;
+  margin-top: clamp(10px, 2.2svh, 22px);
   max-width: 34ch;
   font-size: 15px;
   line-height: 1.6;
@@ -2023,7 +2355,7 @@ html.seen .loader {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px 24px;
-  padding-top: 26px;
+  padding-top: clamp(10px, 2.4svh, 26px);
   font-size: 12.5px;
   line-height: 1.5;
 }
@@ -2034,6 +2366,25 @@ html.seen .loader {
 }
 .ft-bottom a {
   color: var(--paper);
+}
+/* Short laptop screens: the footer keeps its links and sign-up on one screen; the long sentences give way. */
+@media (min-width: 860px) and (max-height: 780px) {
+  .ft-title {
+    font-size: clamp(36px, min(7vw, 11svh), 112px);
+  }
+  .ft-lede,
+  .ft-about {
+    display: none;
+  }
+  .footer .wm-logo {
+    width: clamp(70px, 12svh, 110px);
+  }
+  .footer .ft-social {
+    margin-top: 12px;
+  }
+  .footer .ft-h {
+    margin-bottom: 8px;
+  }
 }
 @media (max-width: 859.98px) {
   .ft-top {
@@ -2047,6 +2398,37 @@ html.seen .loader {
   }
   .ft-cols > :last-child {
     grid-column: 1 / -1;
+  }
+}
+/* Tablet portrait: title beside the sign-up, brand across the top, the three link blocks in one row. */
+@media (min-width: 600px) and (max-width: 859.98px) {
+  .ft-top {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }
+  .ft-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .ft-cols > :last-child {
+    grid-column: auto;
+  }
+  .ft-brand {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0 28px;
+  }
+  .ft-brand .wm {
+    grid-row: 1 / span 2;
+  }
+  .ft-brand .ft-about,
+  .ft-brand .ft-social {
+    margin-top: 0;
+    grid-column: 2;
+  }
+  .ft-brand .ft-social {
+    margin-top: 14px;
   }
 }
 @media (max-width: 480px) {
@@ -2067,30 +2449,216 @@ html.seen .loader {
 }
 
 /* ---------- inner pages ---------- */
+/* Page hero: one full screen, content centred, top padding clears the large (not yet compacted) header. */
 .page-hero {
-  padding: 150px var(--pad) 10vh;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--nav-clear-top) var(--pad) var(--fit-pad);
 }
 .page-hero.dark {
   background: var(--ink);
   color: var(--paper);
 }
-.page-hero .lead {
+.lead {
   max-width: 46ch;
-  margin-top: 28px;
-  font-size: clamp(16px, 1.4vw, 20px);
+  margin-top: clamp(12px, 3.4svh, 28px);
+  font-size: clamp(15px, min(1.4vw, 2.9svh), 20px);
   line-height: 1.55;
   color: #4f4a44;
 }
-.page-hero.dark .lead {
+.page-hero.dark .lead,
+.band-ink .lead {
   color: #c9c4bb;
 }
+/* A long section (list, article, grid): not one screen, but it still starts clear of the header. */
 .section {
-  padding: 12vh var(--pad);
+  padding: max(var(--nav-clear), 9svh) var(--pad) 10svh;
 }
 .section.dark {
   background: var(--ink);
   color: var(--paper);
 }
+
+/* ---------- about ---------- */
+.ab-story-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(14px, 3.4svh, 40px);
+  max-width: 1500px;
+  width: 100%;
+  margin: 0 auto;
+}
+.ab-quote {
+  margin: clamp(10px, 2.4svh, 24px) 0 0;
+}
+.ab-quote p {
+  font: 900 clamp(22px, min(7.4vw, 4.3svh), 68px) / 0.98 var(--font-display);
+  letter-spacing: var(--track);
+}
+.ab-quote footer {
+  margin-top: clamp(8px, 2svh, 24px);
+  color: var(--mute);
+}
+.ab-prose {
+  display: grid;
+  gap: clamp(8px, 1.8svh, 18px);
+  align-self: end;
+}
+.ab-prose p {
+  font-size: clamp(13.5px, min(3.8vw, 2.2svh), 21px);
+  line-height: 1.55;
+}
+.ab-after p {
+  font: 900 clamp(18px, min(4.6vw, 3.4svh), 40px) / 1.05 var(--font-display);
+  letter-spacing: var(--track);
+}
+@media (min-width: 860px) {
+  .ab-story-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 6vw;
+    align-items: center;
+  }
+  .ab-quote p {
+    font-size: clamp(30px, min(4.4vw, 7.6svh), 68px);
+  }
+  .ab-prose p {
+    font-size: clamp(14px, min(1.5vw, 2.7svh), 21px);
+  }
+  .ab-after p {
+    font-size: clamp(20px, min(2.6vw, 4.6svh), 40px);
+  }
+}
+.ab-cap {
+  background: var(--ink);
+  color: var(--paper);
+}
+.ab-cap-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 24px;
+}
+.ab-cap-head p {
+  max-width: 36ch;
+  color: var(--mute-inv);
+  line-height: 1.5;
+}
+.ab-cap-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(8px, 2.4svh, 40px) 18px;
+  margin: clamp(14px, 5svh, 64px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ab-cap-list li {
+  border-top: 1.5px solid var(--line-inv);
+  padding-top: clamp(6px, 1.8svh, 18px);
+}
+.ab-cap-n {
+  display: block;
+  font: 900 clamp(22px, min(3.2vw, 6svh), 44px) / 1 var(--font-display);
+  letter-spacing: var(--track);
+  color: var(--yellow);
+}
+.ab-cap-list h3 {
+  margin-top: clamp(4px, 1.2svh, 12px);
+  font: 800 clamp(15px, min(2vw, 3svh), 22px) / 1.1 var(--font-display);
+  letter-spacing: -0.02em;
+}
+.ab-cap-list p {
+  margin-top: clamp(3px, 0.8svh, 8px);
+  color: var(--mute-inv);
+  font-size: clamp(12.5px, 2.1svh, 14.5px);
+  line-height: 1.45;
+}
+@media (min-width: 860px) {
+  .ab-cap-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* Phones and short screens: the numbered titles stay, the one-line descriptions make room (the process page has them in full). */
+@media (max-width: 599.98px), (max-width: 859.98px) and (max-height: 760px) {
+  .ab-cap-list p {
+    display: none;
+  }
+}
+
+.ab-floor-text {
+  max-width: 52ch;
+  color: var(--ink);
+  font-size: clamp(13px, min(1.2vw, 2.4svh), 16px);
+  line-height: 1.45;
+}
+.ab-floor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(8px, 1.4vw, 18px);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  max-width: 1500px;
+  width: 100%;
+}
+.ab-floor-grid figure {
+  margin: 0;
+}
+.ab-floor-img {
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--paper-2);
+}
+.ab-floor-img img {
+  width: 100%;
+  height: clamp(80px, 17svh, 300px);
+  object-fit: cover;
+}
+.ab-floor-grid figcaption {
+  margin-top: clamp(4px, 1svh, 10px);
+  color: var(--mute);
+  font-size: clamp(12px, 2svh, 14px);
+}
+.ab-stats dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 18px;
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.ab-stats dt {
+  font: 900 clamp(24px, min(3.6vw, 6.2svh), 56px) / 1 var(--font-display);
+  letter-spacing: var(--track);
+  color: var(--yellow);
+}
+.ab-stats dd {
+  margin: 3px 0 0;
+  color: var(--mute-inv);
+  font-size: clamp(12px, 2svh, 14px);
+  line-height: 1.35;
+}
+@media (min-width: 860px) {
+  .ab-floor-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .ab-floor-img img {
+    height: clamp(90px, 32svh, 380px);
+  }
+  .ab-stats dl {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px 24px;
+  }
+}
+@media (max-width: 859.98px) and (max-height: 760px) {
+  .ab-floor-text {
+    display: none;
+  }
+}
+
 /* Small uppercase label above a heading: readable on both backgrounds, with a short rule instead of brackets. */
 .kicker,
 .eyebrow {
@@ -2350,7 +2918,7 @@ select.input {
   .brand-label small,
   .card .tag,
   .o-spec dt,
-  .footer h2 {
+  .footer .ft-h {
     font-size: 12px;
   }
 }
@@ -2361,6 +2929,13 @@ select.input {
   align-items: center;
   min-width: 44px;
   min-height: 44px;
+}
+/* A mouse needs less: 32px rows keep the footer within one screen on laptops (touch keeps 44px). */
+@media (hover: hover) and (pointer: fine) {
+  .footer ul a,
+  .ft-bottom a {
+    min-height: 32px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2410,7 +2985,8 @@ main:focus {
 .blog-media {
   position: relative;
   display: block;
-  aspect-ratio: 4 / 3;
+  /* Height follows the screen, so a row of cards (image, date, title, summary) fits one screen. */
+  height: clamp(130px, 34svh, 420px);
   border-radius: 20px;
   overflow: hidden;
   background: var(--ink);
@@ -2440,24 +3016,24 @@ main:focus {
 }
 .blog-meta {
   display: block;
-  margin-top: 18px;
+  margin-top: clamp(10px, 2.2svh, 18px);
   color: var(--mute);
 }
 .blog-title {
-  margin-top: 10px;
-  font: 900 clamp(26px, 2.6vw, 40px) / 1 var(--font-display);
+  margin-top: clamp(6px, 1.2svh, 10px);
+  font: 900 clamp(22px, min(2.6vw, 4.6svh), 40px) / 1 var(--font-display);
   letter-spacing: var(--track);
 }
 .blog-sum {
   max-width: 52ch;
-  margin-top: 12px;
-  font-size: 16px;
+  margin-top: clamp(6px, 1.4svh, 12px);
+  font-size: clamp(14px, 2.4svh, 16px);
   line-height: 1.55;
   color: #4f4a44;
 }
 .blog-more {
   display: inline-block;
-  margin-top: 16px;
+  margin-top: clamp(8px, 2svh, 16px);
   font: 600 13px/1 var(--font-body);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2466,13 +3042,17 @@ main:focus {
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
 }
+.post-hero {
+  /* The cover photo below is pulled up over the bottom of the hero. */
+  padding-bottom: max(var(--fit-pad), 9svh);
+}
 .post-hero .post-title {
   max-width: 18ch;
-  margin-top: 18px;
-  font-size: clamp(40px, 6.2vw, 104px);
+  margin-top: clamp(10px, 2.4svh, 18px);
+  font-size: clamp(34px, min(6.2vw, 11svh), 104px);
 }
 .post-byline {
-  margin-top: 28px;
+  margin-top: clamp(12px, 3svh, 28px);
 }
 .post-hero .kicker a {
   text-decoration: underline;
@@ -2529,8 +3109,21 @@ main:focus {
   color: var(--ink);
   font-weight: 600;
 }
+/* "Keep reading": an ink screen of its own, between the paper article and the yellow call to action. */
 .post-more {
-  border-top: 1px solid var(--line);
+  background: var(--ink);
+  color: var(--paper);
+}
+.post-more .blog-meta {
+  color: var(--mute-inv);
+}
+.post-more .blog-media {
+  height: clamp(100px, 26svh, 360px);
+}
+@media (max-width: 859.98px) and (max-height: 700px) {
+  .post-more .blog-media {
+    height: clamp(70px, 17svh, 360px);
+  }
 }
 @media (max-width: 859.98px) {
   .blog-grid {
@@ -2547,43 +3140,36 @@ main:focus {
   }
 }
 
-/* ---------- home: client work (Spotify collab, Valour pieces, brands) ---------- */
-.cw {
-  background: var(--paper);
-  color: var(--ink);
-  padding: 14vh var(--pad) 12vh;
-  display: grid;
-  gap: clamp(72px, 14vh, 140px);
+/* ---------- client work: collab (ink strip / paper), hard garments (paper strip / ink), brands (yellow strip / paper) ---------- */
+.cw .band-head .cw-title {
+  font-size: clamp(32px, min(5.4vw, 8.6svh), 88px);
 }
 .cw ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.cw-spot-wrap .h-section {
-  margin-bottom: clamp(28px, 5vh, 56px);
-}
 .cw-spot {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr);
-  gap: clamp(28px, 5vw, 80px);
+  gap: clamp(20px, 5vw, 80px);
   align-items: center;
+  max-width: 1500px;
+  width: 100%;
+  margin: 0 auto;
 }
-.cw-spot-copy p:not(.kicker) {
+.cw-spot-copy p {
   max-width: 44ch;
+  margin-top: clamp(12px, 3svh, 28px);
   color: #4f4a44;
-  line-height: 1.6;
-}
-.cw-sub {
-  margin: 28px 0 10px;
-  font: 800 clamp(22px, 2.2vw, 30px) / 1.05 var(--font-display);
-  letter-spacing: -0.03em;
+  line-height: 1.55;
+  font-size: clamp(14px, min(1.3vw, 2.6svh), 17px);
 }
 .cw-spot-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(10px, 1.4vw, 20px);
-  align-items: end;
+  gap: clamp(8px, 1.4vw, 20px);
+  align-items: center;
 }
 .cw-spot-grid picture,
 .cw-pieces picture {
@@ -2596,15 +3182,18 @@ main:focus {
 .cw-pieces img {
   display: block;
   width: 100%;
-  height: auto;
+  object-fit: cover;
+}
+/* Photo height follows the screen height, so three jackets and the copy fit one screen. */
+.cw-spot-grid img {
+  height: clamp(130px, 50svh, 540px);
 }
 /* Antlertee x Spotify lockup */
 .cl {
   display: flex;
   align-items: center;
-  gap: clamp(12px, 1.6vw, 22px);
-  margin-top: 18px;
-  padding: clamp(16px, 2vw, 26px) clamp(18px, 2.4vw, 32px);
+  gap: clamp(10px, 1.6vw, 22px);
+  padding: clamp(12px, 2.4svh, 26px) clamp(16px, 2.4vw, 32px);
   width: fit-content;
   max-width: 100%;
   border-radius: 18px;
@@ -2613,21 +3202,21 @@ main:focus {
 }
 .cl-ant {
   display: block;
-  width: clamp(64px, 6.4vw, 92px);
+  width: clamp(48px, min(6.4vw, 10svh), 92px);
   aspect-ratio: 520 / 518;
   background: currentColor;
   -webkit-mask: url(/brand/logo-lockup-mask.png) center / contain no-repeat;
   mask: url(/brand/logo-lockup-mask.png) center / contain no-repeat;
 }
 .cl-x {
-  font: 400 clamp(26px, 2.8vw, 40px) / 1 var(--font-body);
+  font: 400 clamp(22px, min(2.8vw, 4.4svh), 40px) / 1 var(--font-body);
   color: #a9a39b;
 }
 .cl-spot {
   display: flex;
   align-items: center;
   gap: 0.55em;
-  font-size: clamp(18px, 2vw, 28px);
+  font-size: clamp(16px, min(2vw, 3.6svh), 28px);
 }
 .cl-glyph {
   width: 1.9em;
@@ -2639,53 +3228,70 @@ main:focus {
   letter-spacing: -0.04em;
   color: #fff;
 }
-.cw-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px 40px;
-  flex-wrap: wrap;
-}
-.cw-head > p {
-  max-width: 44ch;
-  color: #4f4a44;
-  line-height: 1.6;
+/* Hard garments: pieces on the ink stage. */
+.cw-hard-text {
+  max-width: 62ch;
+  margin-bottom: clamp(12px, 3svh, 32px);
+  color: #c9c4bb;
+  line-height: 1.5;
+  font-size: clamp(14px, min(1.3vw, 2.6svh), 18px);
 }
 .cw-pieces {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(12px, 1.6vw, 24px);
-  margin-top: clamp(28px, 5vh, 48px);
+  gap: clamp(10px, 1.6vw, 24px);
+  max-width: 1500px;
+  width: 100%;
 }
 .cw-pieces figure {
   margin: 0;
 }
+.cw-pieces img {
+  height: clamp(110px, 42svh, 520px);
+}
 .cw-pieces figcaption {
-  padding-top: 12px;
+  padding-top: clamp(6px, 1.4svh, 12px);
 }
 .cw-pieces figcaption b {
   display: block;
-  font: 700 16px / 1.25 var(--font-body);
+  font: 700 clamp(14px, 2.4svh, 16px) / 1.25 var(--font-body);
 }
 .cw-pieces figcaption span {
   display: block;
-  margin-top: 4px;
-  font-size: 14px;
+  margin-top: 3px;
+  font-size: clamp(12px, 2.1svh, 14px);
   line-height: 1.4;
-  color: #5f5a54;
+  color: var(--mute-inv);
 }
+/* Phones: the intro line and the piece notes make room, the pieces and their names stay. */
+@media (max-width: 599.98px) {
+  .cw-hard-text,
+  .cw-pieces figcaption span {
+    display: none;
+  }
+  .cw .cw-pieces img {
+    height: clamp(90px, 20svh, 300px);
+  }
+}
+/* Brands: logo tiles in rows of five (nine tiles: the last row is centred), three across on phones. */
 .cw-logos {
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: clamp(8px, 0.9vw, 12px);
-  margin-top: clamp(24px, 4vh, 40px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(8px, 1.2vw, 18px);
+  max-width: 1500px;
+  width: 100%;
+  margin: 0 auto;
 }
 .cw-logos li {
+  --cols: 5;
   display: grid;
   place-items: center;
-  aspect-ratio: 1 / 1;
-  padding: clamp(8px, 1vw, 14px);
-  border-radius: 12px;
+  flex: 0 0 calc((100% - (var(--cols) - 1) * clamp(8px, 1.2vw, 18px)) / var(--cols));
+  aspect-ratio: 16 / 10;
+  max-height: 26svh;
+  padding: clamp(8px, 1.2vw, 18px);
+  border-radius: 14px;
   overflow: hidden;
 }
 .cw-logos img {
@@ -2696,77 +3302,317 @@ main:focus {
   height: auto;
   object-fit: contain;
 }
-@media (max-width: 1099.98px) {
-  .cw-logos {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
 @media (max-width: 859.98px) {
-  .cw {
-    padding: 12vh var(--pad) 10vh;
-  }
   .cw-spot {
     grid-template-columns: minmax(0, 1fr);
+    gap: clamp(12px, 3svh, 28px);
+  }
+  .cw-spot-grid img {
+    height: clamp(100px, 28svh, 360px);
   }
   .cw-pieces {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .cw-pieces figcaption b {
-    font-size: 15px;
+  .cw-pieces img {
+    height: clamp(90px, 24svh, 300px);
   }
-  .cw-pieces figcaption span {
-    font-size: 13px;
+  .cw-logos li {
+    --cols: 3;
+    max-height: 18svh;
   }
 }
 @media (max-width: 480px) {
-  .cw-spot-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .cw-logos li {
+    padding: 6px;
   }
-  .cw-spot-grid li:last-child {
-    grid-column: 1 / -1;
-  }
-  .cw-spot-grid li:last-child picture {
-    aspect-ratio: 16 / 10;
-  }
-  .cw-spot-grid li:last-child img {
-    height: 100%;
-    object-fit: cover;
-  }
-  .cw-logos {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+/* Short screens: the second line of each caption goes first. */
+@media (max-height: 600px) {
+  .cw-pieces figcaption span {
+    display: none;
   }
 }
 
-/* ---------- process page: stages inside bulk production ---------- */
-.pg-sub {
-  list-style: none;
-  margin: 28px 0 0;
-  padding: 0;
-  max-width: 52ch;
-  border-top: 1px solid rgba(244, 242, 238, 0.14);
+/* ---------- process page: how it works, one screen per step ---------- */
+.hiw-intro {
+  background: var(--yellow);
+  color: var(--ink);
 }
-.pg-sub li {
-  display: grid;
-  grid-template-columns: 3.4em minmax(0, 1fr);
-  gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(244, 242, 238, 0.14);
+.hiw-intro .kicker {
+  color: var(--ink);
 }
-.pg-sub b {
-  font: 600 13px / 1.6 var(--font-body);
-  letter-spacing: 0.04em;
-  color: var(--yellow);
+.hiw-big {
+  margin-top: clamp(8px, 2svh, 18px);
 }
-.pg-sub strong {
-  display: block;
-  font: 700 17px / 1.25 var(--font-body);
+.hiw-lead {
+  max-width: 46ch;
+  margin-top: clamp(12px, 3svh, 24px);
+  font-size: clamp(15px, min(1.4vw, 2.9svh), 20px);
+  line-height: 1.5;
+}
+.hiw-step {
+  align-items: stretch;
+}
+.hiw-step.band-ink {
+  background: var(--ink);
   color: var(--paper);
 }
-.pg-sub span {
-  font-size: 15px;
-  line-height: 1.5;
+.hiw-step.band-paper {
+  background: var(--paper);
+  color: var(--ink);
+}
+.hiw-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.5fr) minmax(0, 1.25fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: clamp(16px, 4vw, 64px);
+  width: 100%;
+  max-width: 1500px;
+  margin: auto;
+}
+.hiw-n {
+  font: 900 clamp(56px, min(10vw, 22svh), 168px) / 0.85 var(--font-display);
+  letter-spacing: var(--track);
+  color: var(--ink);
+}
+.band-ink .hiw-n {
+  color: var(--yellow);
+}
+.hiw-title {
+  font: 900 clamp(30px, min(4.6vw, 8.4svh), 72px) / 0.92 var(--font-display);
+  letter-spacing: var(--track);
+}
+.hiw-copy p {
+  max-width: 52ch;
+  margin-top: clamp(10px, 2.4svh, 22px);
+  font-size: clamp(14px, min(1.3vw, 2.7svh), 17.5px);
+  line-height: 1.55;
+}
+.band-ink .hiw-copy p {
   color: #c9c4bb;
 }
-.pg-sub strong + * {
-  margin-top: 2px;
+.band-paper .hiw-copy p {
+  color: #3d3934;
+}
+.hiw-pic {
+  justify-self: center;
+  width: min(100%, 320px, calc((100svh - var(--nav-clear) - 90px) * 0.75));
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--ink-2);
+}
+.hiw-pic img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+@media (max-width: 859.98px) {
+  .hiw-grid {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(8px, 2svh, 20px);
+    margin: 0 auto;
+  }
+  .hiw-n {
+    font-size: clamp(48px, min(20vw, 12svh), 110px);
+  }
+  .hiw-pic {
+    width: min(100%, 220px, calc((100svh - var(--nav-clear) - 400px) * 0.75));
+    justify-self: start;
+  }
+}
+/* Short phones: the picture is decoration, the copy stays. */
+@media (max-width: 859.98px) and (max-height: 720px) {
+  .hiw-pic {
+    display: none;
+  }
+}
+
+/* Stages inside bulk production: yellow strip, then eight numbered cells on paper. */
+.hiw-sub-title {
+  font: 900 clamp(26px, min(4.4vw, 7.4svh), 64px) / 0.95 var(--font-display);
+  letter-spacing: var(--track);
+}
+.hiw-stages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(8px, 2.4svh, 36px) clamp(12px, 2vw, 28px);
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.hiw-stages li {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  border-top: 1.5px solid var(--ink);
+  padding-top: clamp(6px, 1.6svh, 14px);
+}
+.hiw-stages b {
+  font: 800 12px / 1.4 var(--font-body);
+  letter-spacing: 0.06em;
+  color: var(--mute);
+}
+.hiw-stages strong {
+  font: 800 clamp(16px, min(1.8vw, 3.2svh), 22px) / 1.15 var(--font-display);
+  letter-spacing: -0.02em;
+}
+.hiw-stages span {
+  color: #3d3934;
+  font-size: clamp(12.5px, min(1.1vw, 2.2svh), 15px);
+  line-height: 1.45;
+}
+@media (min-width: 860px) {
+  .hiw-stages {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 859.98px) and (max-height: 700px) {
+  .hiw-stages span {
+    display: none;
+  }
+}
+
+/* FAQ: the heading stays beside the list while it scrolls (a long list: the one place this page is taller than a screen). */
+.faq-grid {
+  display: grid;
+  gap: clamp(20px, 5svh, 40px);
+}
+@media (min-width: 860px) {
+  .faq-grid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    gap: 6vw;
+  }
+  .faq-side {
+    position: sticky;
+    top: calc(var(--nav-clear) + 12px);
+    align-self: start;
+  }
+}
+
+
+/* ---------- contact, credits, 404 ---------- */
+.ct-hero {
+  padding: var(--nav-clear-top) var(--pad) clamp(18px, 4.4svh, 52px);
+}
+.ct-title {
+  margin-top: clamp(8px, 2svh, 18px);
+}
+.ct-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(10px, 2.4svh, 24px) 24px;
+  max-width: 1500px;
+  margin: clamp(16px, 4svh, 40px) 0 0;
+  font-size: clamp(14px, 2.4svh, 15px);
+  line-height: 1.45;
+}
+.ct-facts > div {
+  min-width: 0;
+  border-top: 1px solid var(--line-inv);
+  padding-top: clamp(6px, 1.4svh, 12px);
+}
+.ct-facts dt {
+  color: var(--mute-inv);
+}
+.ct-facts dd {
+  margin: 6px 0 0;
+}
+.ct-big {
+  font: 800 clamp(17px, min(1.9vw, 3.4svh), 26px) / 1.2 var(--font-display);
+  letter-spacing: -0.02em;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 860px) {
+  .ct-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+/* The form starts clear of the header, so the first label is readable when the page stops at the form. */
+.ct-form {
+  padding: max(var(--nav-clear), 7svh) var(--pad) 12svh;
+}
+.ct-form-in {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.cr .cr-title {
+  font-size: clamp(32px, min(6vw, 9svh), 96px);
+}
+.cr-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 clamp(24px, 5vw, 80px);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.cr-list > div {
+  border-top: 1.5px solid rgba(13, 12, 11, 0.15);
+  padding: clamp(8px, 2svh, 24px) 0;
+}
+.cr-list dt {
+  color: var(--mute);
+}
+.cr-list dd {
+  display: grid;
+  gap: 6px;
+  margin: clamp(4px, 1svh, 10px) 0 0;
+  font-size: clamp(13px, min(1.2vw, 2.4svh), 17px);
+  line-height: 1.5;
+}
+.cr-list dd a {
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+@media (min-width: 860px) {
+  .cr-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.nf-main {
+  padding-top: var(--nav-clear-top);
+}
+.nf-foot {
+  gap: 10px 12px;
+  justify-content: flex-start;
+}
+
+/* ---------- process hero (src/components/techpack, not edited): fit overrides ---------- */
+/* The hero is one screen; on short laptop screens its headline, lead and the two choices need less room to stay inside it,
+   and the text must clear the large header at the very top of the page. */
+.tph .tph-in {
+  padding-top: var(--nav-clear-top);
+}
+@media (min-width: 860px) and (max-height: 800px) {
+  .tph .tph-title {
+    font-size: clamp(44px, min(7vw, 11svh), 124px);
+  }
+  .tph .tph-lead {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .tph .tph-how {
+    min-height: 36px;
+  }
+  .tph .tph-tabs {
+    margin-top: 14px;
+  }
+  .tph .tp-tab {
+    padding-block: 12px 10px;
+  }
+  .tph .tp-tab-x {
+    display: none;
+  }
 }

@@ -5,7 +5,7 @@ import { hero } from "@/content/copy";
 /** Home hero: the headline beside the auto-playing "Yarn to pack." animation (knit, cut, stitch, wash, print, pack). */
 export function HomeHero() {
   return (
-    <section className="pr-hero home-hero" data-nav="dark" aria-labelledby="hero-title">
+    <section className="pr-hero home-hero" data-nav="dark" data-snap="fit" aria-labelledby="hero-title">
       <div className="pr-hero-in">
         <div className="pr-copy">
           <p className="eyebrow">
@@ -19,10 +19,10 @@ export function HomeHero() {
           <p className="pr-lead">{hero.lede}</p>
           <div className="pr-ctas">
             <Link className="pill solid lg" href="/process/#tech-pack">
-              Start your clothing line
+              Start my collection
             </Link>
             <Link className="pill on-dark lg" href="/products/">
-              See the rack
+              Peek inside the rack
             </Link>
           </div>
           <ul className="hero-chips" aria-label="Key facts">

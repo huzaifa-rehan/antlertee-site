@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { techniques, zonesFor, type TechniqueId, type View } from "@/content/techpack";
-import type { StepProps } from "./fields";
+import { Help, Optional, type StepProps } from "./fields";
 import { GarmentFlat } from "./GarmentFlat";
 import { activePlacements, garmentLabel } from "./logic";
 
@@ -71,13 +71,18 @@ export function ArtworkStep({ data, update, set }: StepProps) {
           />
         </div>
         <p className="hint tp-art-cap">
-          {garmentLabel(data) || "Garment"}, {view} view. Tap a dashed zone to add a placement. Left and right are as worn.
+          {garmentLabel(data) || "Garment"}, {view} view. Tap a dashed area to add a logo or print there. Left and right are as worn.
         </p>
       </div>
 
       <div className="tp-art-list">
         <fieldset className="tp-fieldset">
-          <legend className="tp-legend">Placements</legend>
+          <legend className="tp-legend">
+            Where do you want a logo or print? <Optional />
+          </legend>
+          <p className="tp-hint">
+            Tap a place on the garment, then say how it is made. Plain garment, or no artwork yet? Just skip this step.
+          </p>
           <ul className="tp-zones">
             {zones.map((z) => {
               const p = data.placements[z.id];
@@ -102,24 +107,30 @@ export function ArtworkStep({ data, update, set }: StepProps) {
                   {p && (
                     <div className="tp-zone-set">
                       <div className="field">
-                        <label htmlFor={`tp-z-${z.id}-tech`}>Technique</label>
+                        <label htmlFor={`tp-z-${z.id}-tech`}>How is it made?</label>
                         <select
                           id={`tp-z-${z.id}-tech`}
                           className="input"
                           value={p.technique}
                           onChange={(e) => patch(z.id, { technique: e.target.value as TechniqueId | "" })}
                           onFocus={() => setSelected(z.id)}
+                          aria-describedby={`tp-z-${z.id}-tech-hint`}
                         >
-                          <option value="">Not sure yet</option>
+                          <option value="">Not sure, you decide</option>
                           {techniques.map((t) => (
                             <option key={t.id} value={t.id}>
                               {t.label}
                             </option>
                           ))}
                         </select>
+                        <p className="hint" id={`tp-z-${z.id}-tech-hint`}>
+                          {techniques.find((t) => t.id === p.technique)?.hint ?? "We suggest the best way for your design."}
+                        </p>
                       </div>
                       <div className="field">
-                        <label htmlFor={`tp-z-${z.id}-size`}>Approx. size</label>
+                        <label htmlFor={`tp-z-${z.id}-size`}>
+                          How big? <Optional />
+                        </label>
                         <input
                           id={`tp-z-${z.id}-size`}
                           className="input"
@@ -137,9 +148,18 @@ export function ArtworkStep({ data, update, set }: StepProps) {
             })}
           </ul>
         </fieldset>
+        <Help summary="What do these printing words mean?">
+          <ul className="tp-help-list">
+            {techniques.map((t) => (
+              <li key={t.id}>
+                <strong>{t.label}.</strong> {t.hint}
+              </li>
+            ))}
+          </ul>
+        </Help>
         <div className="field">
           <label htmlFor="tp-artwork">
-            Artwork description <span className="opt">(optional)</span>
+            Tell us about the design <Optional />
           </label>
           <textarea
             id="tp-artwork"
@@ -147,11 +167,11 @@ export function ArtworkStep({ data, update, set }: StepProps) {
             rows={3}
             value={data.artworkNotes}
             onChange={(e) => set("artworkNotes", e.target.value)}
-            placeholder="e.g. Logo in Pantone 109 C on the chest, flame graphic on the back. Files to follow."
+            placeholder="e.g. Small logo on the chest, big flame graphic on the back. I will send the files."
             aria-describedby="tp-artwork-hint"
           />
           <p className="hint" id="tp-artwork-hint">
-            You attach the artwork files (AI, PDF or PNG) in WhatsApp or email when you send this.
+            You can add your logo or a sketch on the last step.
           </p>
         </div>
       </div>

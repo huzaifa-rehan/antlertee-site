@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { silhouetteFor, type GarmentId, type Silhouette, type View } from "@/content/techpack";
 
 /**
@@ -55,6 +56,14 @@ function zoneShapes(sil: Silhouette, view: View): Record<string, Shape> {
     "back-yoke": rect(112, 84, 76, 26),
     "full-back": rect(98, 122, 104, 150),
   };
+}
+
+/** True for colours dark enough that the dashed detail lines need to be light to show. */
+function isDark(hex: string): boolean {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (!m) return false;
+  const [r, g, b] = [m[1], m[2], m[3]].map((h) => Number.parseInt(h as string, 16));
+  return 0.299 * (r as number) + 0.587 * (g as number) + 0.114 * (b as number) < 110;
 }
 
 function centre(s: Shape): [number, number] {
@@ -152,6 +161,8 @@ export function GarmentFlat({
   onZone,
   title,
   className,
+  fill,
+  bare,
 }: {
   garment: GarmentId | "";
   view: View;
@@ -162,15 +173,21 @@ export function GarmentFlat({
   /** Accessible name when the sketch is shown as an image (print). */
   title?: string;
   className?: string;
+  /** Body colour for the live preview, as a hex value. The default is white. */
+  fill?: string;
+  /** Draw the garment only, without the placement zones. */
+  bare?: boolean;
 }) {
   const sil = silhouetteFor(garment);
-  const shapes = zoneShapes(sil, view);
+  const shapes = bare ? {} : zoneShapes(sil, view);
   const placed = new Map(markers.map((m) => [m.id, m.n]));
   const interactive = Boolean(onZone);
 
   return (
     <svg
       className={className}
+      style={fill ? ({ "--tp-fill": fill } as CSSProperties) : undefined}
+      data-tone={fill && isDark(fill) ? "dark" : undefined}
       viewBox="0 0 300 340"
       role={interactive ? undefined : "img"}
       aria-hidden={interactive ? true : undefined}
