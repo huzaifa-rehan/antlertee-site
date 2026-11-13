@@ -1,19 +1,68 @@
-/* Button feel, in the style of whatsapp.com: a smooth colour flip on hover (the colours are set in globals.css),
-   an arrow icon that glides forward, a small grow on hover, a press-in on click that springs back, and a soft wash
-   that spreads from the exact point of the click (ButtonFx adds the .fx-ring). Header links only flip colour. */
+/* Button hover and click, copied from whatsapp.com: a disc of the hover colour hides below the button; on hover it
+   rises and grows (1s, same easing) until it floods the button, and only then do the text and fill colours flip.
+   The final colours per variant are set in globals.css (--spread below must match each variant's hover fill).
+   Taps and keyboard focus trigger the same spread. */
 .pill,
 .nl-btn {
+  --spread: var(--ink);
   position: relative;
   overflow: hidden;
   isolation: isolate;
   transition:
-    background-color 0.33s ease,
-    color 0.33s ease,
-    border-color 0.33s ease,
-    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    color 0.2s linear,
+    background-color 0.33s linear,
+    border-color 0.33s ease-out;
+}
+.pill::before,
+.nl-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px -4px;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--spread);
+  pointer-events: none;
+  transform: translateY(101%) scale(1);
+  transition: transform 1s cubic-bezier(0.66, 0, 0.34, 1);
 }
 
-/* Arrow icon on the call-to-action buttons (replaces the typed arrows in the labels). */
+/* The colour each variant floods with = its hover fill in globals.css. */
+.on-dark .pill,
+.pill.on-dark,
+.band-ink .pill,
+.nav[data-theme="dark"] .pill:not(.solid),
+.pill.solid.on-dark,
+.pr-ctas .pill.solid,
+.footer .pill.solid,
+.nav[data-theme="dark"] .pill.solid,
+.pill.inked,
+.nl-btn {
+  --spread: var(--paper);
+}
+.pill.solid:not(.on-dark) {
+  --spread: var(--ink);
+}
+.on-dark .pill.solid,
+.band-ink .pill.solid,
+.pr-ctas .pill.solid,
+.footer .pill.solid,
+.nav[data-theme="dark"] .pill.solid {
+  --spread: var(--paper);
+}
+
+.pill:not([disabled]):is(:hover, :focus-visible, :active),
+.nl-btn:not([disabled]):is(:hover, :focus-visible, :active) {
+  transition:
+    color 0.25s linear 0.3s,
+    background-color 0.33s linear 0.5s,
+    border-color 0.5s ease-out 0.5s;
+}
+.pill:not([disabled]):is(:hover, :focus-visible, :active)::before,
+.nl-btn:not([disabled]):is(:hover, :focus-visible, :active)::before {
+  transform: translateY(0) scale(1.5);
+}
+
+/* Arrow icon on the call-to-action buttons (replaces typed arrows in the labels). */
 .pill.solid::after,
 .pill.inked::after,
 .pill.go::after,
@@ -27,74 +76,13 @@
   background: currentColor;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
-  transition: transform 0.33s var(--ease-out);
 }
 .menu-btn::after,
 .pill[aria-pressed]::after {
   content: none;
 }
 
-@media (hover: hover) {
-  .pill:not([disabled]):hover,
-  .nl-btn:not([disabled]):hover {
-    transform: scale(1.04);
-  }
-  .pill:not([disabled]):hover::after,
-  .nl-btn:not([disabled]):hover::after {
-    transform: translateX(4px);
-  }
-  /* Header links stay put so the bar does not jitter: colour flip only. */
-  .nav-links .pill:hover,
-  .nav .menu-btn:hover {
-    transform: none;
-  }
-}
-.pill:not([disabled]):active,
-.nl-btn:not([disabled]):active {
-  transform: scale(0.94);
-  transition-duration: 0.1s;
-}
-
-/* Click wash (added by ButtonFx): a soft disc that spreads from the tap point. */
-.fx-ring {
-  position: absolute;
-  z-index: -1;
-  border-radius: 50%;
-  pointer-events: none;
-  background: currentColor;
-  opacity: 0.28;
-  transform: scale(0.05);
-  animation: fx-ring 0.6s ease-out forwards;
-}
-@keyframes fx-ring {
-  to {
-    transform: scale(1);
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pill,
-  .nl-btn {
-    transition:
-      background-color 0.2s,
-      color 0.2s,
-      border-color 0.2s;
-  }
-  .pill:not([disabled]):hover,
-  .nl-btn:not([disabled]):hover,
-  .pill:not([disabled]):active,
-  .nl-btn:not([disabled]):active,
-  .pill:not([disabled]):hover::after,
-  .nl-btn:not([disabled]):hover::after {
-    transform: none;
-  }
-  .fx-ring {
-    display: none;
-  }
-}
-
-/* On dark surfaces the yellow button flips to white (a dark fill would vanish into the background). */
+/* On dark surfaces the yellow button's hover fill is white (a dark one would vanish into the background). */
 .pr-ctas .pill.solid:hover,
 .on-dark .pill.solid:hover,
 .band-ink .pill.solid:hover,
@@ -103,4 +91,20 @@
   background: var(--paper);
   border-color: var(--paper);
   color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill,
+  .nl-btn,
+  .pill:not([disabled]):is(:hover, :focus-visible, :active),
+  .nl-btn:not([disabled]):is(:hover, :focus-visible, :active) {
+    transition:
+      color 0.2s,
+      background-color 0.2s,
+      border-color 0.2s;
+  }
+  .pill::before,
+  .nl-btn::before {
+    display: none;
+  }
 }

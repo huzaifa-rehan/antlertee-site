@@ -3,7 +3,6 @@ import { Gabarito, Onest } from "next/font/google";
 import "./globals.css";
 import "./buttons.css";
 import { Loader, loaderBootScript } from "@/components/Loader";
-import { ButtonFx } from "@/components/ButtonFx";
 import { MediaOverridesProvider } from "@/components/MediaOverrides";
 import { Providers } from "@/components/Providers";
 import { SiteChrome } from "@/components/SiteChrome";
@@ -65,7 +64,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                   <Loader />
                   <SmoothScroll />
                   <SiteNav />
-                  <ButtonFx />
                 </>
               }
               after={<SiteFooter />}
