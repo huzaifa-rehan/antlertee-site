@@ -69,6 +69,11 @@ export function SiteNav() {
         </Link>
         <nav aria-label="Main">
           <ul className="nav-links">
+            <li>
+              <Link className="pill" href="/" aria-current={pathname === "/" ? "page" : undefined}>
+                <span>Home</span>
+              </Link>
+            </li>
             {nav.map((item) => {
               const active = isActive(pathname, item.href);
               return (
